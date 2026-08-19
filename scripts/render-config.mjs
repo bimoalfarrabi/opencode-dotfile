@@ -45,10 +45,15 @@ const CONFIG_DIR = process.env.OPENCODE_CONFIG_DIR
 // ---- Render ---------------------------------------------------------------
 const template = readFileSync(join(REPO, "config", "opencode.json.template"), "utf8");
 
+// Token values become JSON string contents: escape backslashes (Windows paths
+// use `\`, which must be `\\` inside a JSON string) so the output stays valid
+// on native Windows. Forward-slash Linux paths are unaffected.
+const escapeJsonPath = (p) => p.replaceAll("\\", "\\\\");
+
 const rendered = template
-  .replaceAll("{{OPEN_DESIGN_DIR}}", OPEN_DESIGN_DIR)
-  .replaceAll("{{AGENTS_SKILLS}}", AGENTS_SKILLS)
-  .replaceAll("{{HEADROOM_BIN}}", HEADROOM_BIN);
+  .replaceAll("{{OPEN_DESIGN_DIR}}", escapeJsonPath(OPEN_DESIGN_DIR))
+  .replaceAll("{{AGENTS_SKILLS}}", escapeJsonPath(AGENTS_SKILLS))
+  .replaceAll("{{HEADROOM_BIN}}", escapeJsonPath(HEADROOM_BIN));
 
 // Validate final JSON is well-formed (template is JSON with {{}} tokens only)
 JSON.parse(rendered);
