@@ -195,6 +195,46 @@ Yang berikut ini **tidak tercakup** oleh repo — ia layanan/binary per-host:
 | **headroom** | MCP server (nonaktif secara default) | `~/.local/bin/headroom`; `{{HEADROOM_BIN}}` |
 | **daemon open-design** | MCP server `node .../apps/daemon/dist/cli.js mcp` | di-clone + di-build oleh setup; daemon harus dapat dijangkau di `http://127.0.0.1:34215` |
 
+## 9Router di Windows (native vs WSL)
+
+9router adalah **aplikasi Node.js murni** (`os`/`cpu` tidak di-declare di
+package.json), jadi **cross-platform** — bisa di-install di Windows lewat
+`npm i -g 9router`. Yang perlu diperhatikan bukan OS-nya, melainkan **di mana
+`127.0.0.1:20128` itu mengarah**.
+
+Config memakai `provider.9router.baseURL = http://127.0.0.1:20128/v1`. Masalahnya:
+- Di Linux native → 9router dan OpenCode satu loopback, `127.0.0.1` pasti kena. ✅
+- Di Windows, **WSL2 memakai NAT**: `127.0.0.1` di dalam WSL adalah loopback WSL
+  sendiri, **bukan** loopback Windows. Jadi posisi 9router menentukan.
+
+| Skenario | 9router di mana? | `127.0.0.1:20128` kena? |
+|----------|------------------|--------------------------|
+| **A.** OpenCode native Windows | Windows native | ✅ Ya — satu loopback. Ini yang ditarget `setup-windows.ps1`. |
+| **B.** OpenCode di WSL, 9router native Windows | Windows native | ❌ Tidak — `127.0.0.1` di WSL = loopback WSL, bukan host. Wajib ganti `baseURL` ke IP host Windows (gateway), atau pakai mirrored networking (Windows 11 22H2+). |
+| **C.** OpenCode di WSL, 9router juga di WSL | Di dalam WSL | ✅ Ya — identik dengan Linux, config tidak perlu diubah. |
+
+Pilihan kerja:
+
+- **Skenario C (disarankan untuk pengguna WSL)** — install 9router **di dalam WSL**
+  supaya config tetap valid tanpa perubahan (parity sempurna dengan Linux):
+  ```bash
+  # di dalam WSL
+  npm i -g 9router
+  node "$(npm root -g)/9router/cli.js" --skip-update
+  ```
+- **Skenario A** — OpenCode native Windows + 9router native Windows; tidak perlu
+  mengubah apa pun pada config, hanya pastikan 9router berjalan sebelum membuka opencode.
+- **Skenario B** — kurang ideal: harus mengganti `baseURL` di template ke IP host
+  Windows, yang melanggar prinsip "satu config untuk semua OS".
+
+Hal yang tetap perlu diurus per-mesin (di luar repo):
+- **Lisensi/auth 9router** terikat `machine-id` (`~/.9router/machine-id`, `jwt-secret`,
+  `auth/`, `tailscale/`, `tunnel/`, `mitm/`) — Windows butuh registrasi/login sendiri.
+- **API key** di `secrets.env` bisa dipakai ulang, tapi pastikan routing 9router di
+  Windows mengarah ke provider yang sama.
+- Kalau 9router memakai native module (`better-sqlite3`), npm akan ambil prebuilt
+  binary untuk Windows; bila tidak ada prebuild, perlu toolchain build.
+
 ## Mengedit
 
 - **Skills**: edit file di bawah `config/skills/`, `agents-skills/`, `claude-skills/` lalu commit. Jalankan ulang setup untuk menautkan yang baru.
