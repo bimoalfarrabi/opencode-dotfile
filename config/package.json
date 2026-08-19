@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@opencode-ai/plugin": "1.17.7",
+    "caveman-opencode-plugin": "^0.1.5",
+    "oh-my-openagent": "^4.12.1",
+    "openrtk": "^0.1.0"
+  }
+}

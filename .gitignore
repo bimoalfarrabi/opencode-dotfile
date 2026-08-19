@@ -1,0 +1,18 @@
+# Node
+node_modules/
+dist/
+
+# Secrets — NEVER commit real keys
+secrets.env
+config/secrets.env
+
+# OS junk
+.DS_Store
+Thumbs.db
+*.log
+
+# open-design — cloned at setup time (external repo, not tracked here)
+open-design/
+
+# local opencode runtime state (do not sync sessions)
+.local/

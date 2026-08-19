@@ -1,0 +1,3 @@
+{"case_id":"trigger_pos_opencode_001","type":"trigger_positive","input":"Add a new MCP server to my OpenCode config","expected_skill":"customize-opencode"}
+{"case_id":"trigger_pos_plugin_001","type":"trigger_positive","input":"Create an OpenCode plugin for skill enforcement","expected_skill":"customize-opencode"}
+{"case_id":"trigger_neg_app_001","type":"trigger_negative","input":"Build my application's login page","expected_skill":"customize-opencode"}

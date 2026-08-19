@@ -1,0 +1,1485 @@
+{
+  "plugin": [
+    "superpowers@git+https://github.com/obra/superpowers.git",
+    "context-mode",
+    "oh-my-opencode-slim"
+  ],
+  "skills": {
+    "paths": [
+      "{{OPEN_DESIGN_DIR}}/skills",
+      "{{OPEN_DESIGN_DIR}}/design-systems",
+      "{{AGENTS_SKILLS}}"
+    ]
+  },
+  "mcp": {
+    "headroom": {
+      "enabled": false,
+      "type": "local",
+      "command": [
+        "{{HEADROOM_BIN}}",
+        "mcp",
+        "serve"
+      ]
+    },
+    "open-design": {
+      "type": "local",
+      "command": [
+        "node",
+        "{{OPEN_DESIGN_DIR}}/apps/daemon/dist/cli.js",
+        "mcp",
+        "--daemon-url",
+        "http://127.0.0.1:34215"
+      ]
+    },
+    "needmcp": {
+      "type": "remote",
+      "url": "https://needmcp.com/mcp",
+      "enabled": true,
+      "headers": {
+        "X-API-Key": "{env:NEEDMCP_API_KEY}"
+      }
+    },
+    "codegraph": {
+      "type": "local",
+      "command": [
+        "codegraph",
+        "serve",
+        "--mcp"
+      ],
+      "enabled": true
+    }
+  },
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "openagentic": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OpenAgentic",
+      "options": {
+        "baseURL": "https://openagentic.id/api/v1",
+        "apiKey": "{env:OPENAGENTIC_API_KEY}"
+      },
+      "models": {
+        "claude-sonnet-4.5-1m": {
+          "name": "Claude Sonnet 4.5 (1M)",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "claude-sonnet-4.5": {
+          "name": "Claude Sonnet 4.5",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "claude-sonnet-4": {
+          "name": "Claude Sonnet 4",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "claude-sonnet-4.6": {
+          "name": "Claude Sonnet 4.6",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "claude-sonnet-5": {
+          "name": "Claude Sonnet 5",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "claude-opus-4.6": {
+          "name": "Claude Opus 4.6",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "claude-opus-4.6-thinking": {
+          "name": "Claude Opus 4.6 (Thinking)",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "claude-opus-4.7": {
+          "name": "Claude Opus 4.7",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "claude-opus-4.7-thinking": {
+          "name": "Claude Opus 4.7 (Thinking)",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "claude-opus-4.8": {
+          "name": "Claude Opus 4.8",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "claude-opus-4.8-thinking": {
+          "name": "Claude Opus 4.8 (Thinking)",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "oa-claude-opus-4.6": {
+          "name": "OA Claude Opus 4.6",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "grok-4.5": {
+          "name": "Grok 4.5",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "gpt-5.5": {
+          "name": "GPT 5.5",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "gpt-5.6-terra": {
+          "name": "GPT 5.6-Terra",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "gpt-5.3-codex": {
+          "name": "GPT 5.3 Codex",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "gpt-5.4": {
+          "name": "GPT 5.4",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "gemini-2.5-flash": {
+          "name": "Gemini 2.5 Flash",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "gemini-2.5-pro": {
+          "name": "Gemini 2.5 Pro",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "gemini-2.5-flash-image": {
+          "name": "Gemini 2.5 Flash (Image)",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text",
+              "image"
+            ]
+          },
+          "limit": {
+            "context": 32768,
+            "output": 32768
+          }
+        },
+        "gemini-3.1-flash-tts-preview": {
+          "name": "Gemini 3.1 Flash TTS Preview",
+          "attachment": false,
+          "reasoning": false,
+          "tool_call": false,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text",
+              "audio"
+            ]
+          },
+          "limit": {
+            "context": 8192,
+            "output": 16384
+          }
+        },
+        "gemini-3.1-pro-preview": {
+          "name": "Gemini 3.1 Pro Preview",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "gemini-3.1-pro": {
+          "name": "Gemini 3.1 Pro",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "gemini-3.5-flash": {
+          "name": "Gemini 3.5 Flash",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "DeepSeek-V4-Pro": {
+          "name": "DeepSeek V4 Pro",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "deepseek-3.2": {
+          "name": "DeepSeek 3.2",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "Qwen3.5-9B": {
+          "name": "Qwen 3.5 9B",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "Qwen3.6-27B": {
+          "name": "Qwen 3.6 27B",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          }
+        },
+        "qwen3.7-max": {
+          "name": "Qwen 3.7 Max",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          }
+        },
+        "Kimi-K2.6": {
+          "name": "Kimi K2.6",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          }
+        },
+        "kimi-k3": {
+          "name": "Kimi K3",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "glm-5": {
+          "name": "GLM 5",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "GLM-5.1": {
+          "name": "GLM 5.1",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "glm-5.2": {
+          "name": "GLM 5.2",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          }
+        },
+        "MiniMax-M2.7": {
+          "name": "MiniMax M2.7",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 32768
+          }
+        },
+        "minimax-m2.1": {
+          "name": "MiniMax M2.1",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 32768
+          }
+        },
+        "minimax-m3": {
+          "name": "MiniMax M3",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 32768
+          }
+        },
+        "mimo-v2.5-pro": {
+          "name": "Mimo V2.5 Pro",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "mimo-v2.5": {
+          "name": "Mimo V2.5",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "mimo-v2-pro": {
+          "name": "Mimo V2 Pro",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "mimo-v2-omni": {
+          "name": "Mimo V2 Omni",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        }
+      }
+    },
+    "agentrouter": {
+      "name": "Agent Router",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://agentrouter.org/v1"
+      },
+      "models": {
+        "claude-opus-4-8": {
+          "name": "Claude Opus 4.8"
+        }
+      }
+    },
+    "zyloo": {
+      "name": "Zyloo",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.zyloo.io/v1"
+      },
+      "models": {
+        "claude-sonnet-4-6": {
+          "name": "Claude Sonnet 4.6"
+        }
+      }
+    },
+    "evomap": {
+      "name": "EvoMap",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.evomap.ai/v1"
+      },
+      "models": {
+        "evomap-deepseek-v4-flash": {
+          "name": "EvoMap DeepSeek V4 Flash"
+        },
+        "evomap-claude-opus-4-7": {
+          "name": "EvoMap Claude Opus 4.7"
+        }
+      }
+    },
+    "atomesus": {
+      "name": "Atomesus",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.atomesus.com/v1"
+      },
+      "models": {
+        "cipher": {
+          "name": "Cipher"
+        }
+      }
+    },
+    "openmodel": {
+      "name": "OpenModel",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.openmodel.ai/v1"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "OM DeepSeek V4 Flash"
+        }
+      }
+    },
+    "databyte": {
+      "name": "DataByte",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://ai.databyte.co.id/v1"
+      },
+      "models": {
+        "databyte-m1": {
+          "name": "DataByte M1"
+        },
+        "deepseek-v4-flash": {
+          "name": "DB DeepSeek V4 Flash"
+        }
+      }
+    },
+    "commandcode": {
+      "name": "CommandCode",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.commandcode.ai/provider/v1"
+      },
+      "models": {
+        "deepseek/deepseek-v4-pro": {
+          "name": "CC DeepSeek V4 Pro"
+        },
+        "deepseek/deepseek-v4-flash": {
+          "name": "CC DeepSeek V4 Flash"
+        },
+        "moonshotai/Kimi-K2.7-Code": {
+          "name": "CC Kimi K2.7 Code"
+        },
+        "moonshotai/Kimi-K2.7-Code-Highspeed": {
+          "name": "CC Kimi K2.7 Code HighSpeed"
+        },
+        "zai-org/GLM-5.2": {
+          "name": "CC GLM-5.2"
+        },
+        "zai-org/GLM-5.2-Fast": {
+          "name": "CC GLM-5.2 Fast"
+        },
+        "MiniMaxAI/MiniMax-M3": {
+          "name": "CC MiniMax M3"
+        },
+        "xiaomi/mimo-v2.5-pro": {
+          "name": "CC MiMo V2.5 Pro"
+        },
+        "xiaomi/mimo-v2.5": {
+          "name": "CC MiMo V2.5"
+        },
+        "Qwen/Qwen3.7-Plus": {
+          "name": "CC Qwen 3.7 Plus"
+        },
+        "Qwen/Qwen3.7-Max": {
+          "name": "CC Qwen 3.7 Max"
+        },
+        "tencent/HY3": {
+          "name": "Tencent Hy3"
+        }
+      }
+    },
+    "yogathedev": {
+      "name": "Yoga The Dev",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://ai.yogathedev.com/v1",
+        "apiKey": "{env:YOGATHEDEV_API_KEY}"
+      },
+      "models": {
+        "gpt-5.6-sol": {
+          "name": "GPT 5.6 Sol"
+        },
+        "gpt-5.6-terra": {
+          "name": "GPT 5.6 Terra"
+        },
+        "gpt-5.6-luna": {
+          "name": "GPT 5.6 Luna"
+        },
+        "gpt-5.5": {
+          "name": "GPT 5.5"
+        },
+        "claude-sonnet-5": {
+          "name": "Claude Sonnet 5"
+        },
+        "claude-opus-4.8": {
+          "name": "Claude Opus 4.8"
+        },
+        "claude-opus-4.7": {
+          "name": "Claude Opus 4.7"
+        },
+        "claude-sonnet-4.6": {
+          "name": "Claude Sonnet 4.6"
+        }
+      }
+    },
+    "moyra-server-3": {
+      "name": "Moyra AI",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.moyra.my.id/v1",
+        "apiKey": "{env:MOYRA_API_KEY}"
+      },
+      "models": {
+        "gpt-5.6-terra": {
+          "name": "GPT 5.6 Terra"
+        },
+        "gpt-5.6-sol": {
+          "name": "GPT 5.6 Sol"
+        },
+        "gpt-5.6-luna": {
+          "name": "GPT 5.6 Luna"
+        },
+        "grok-4.5-high": {
+          "name": "Grok 4.5 High"
+        },
+        "grok-4.5": {
+          "name": "Grok 4.5"
+        },
+        "claude-opus-5": {
+          "name": "Claude Opus 5"
+        },
+        "claude-opus-4.8": {
+          "name": "Claude Opus 4.8"
+        }
+      }
+    },
+    "srbyte": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "SrByte Router",
+      "options": {
+        "baseURL": "https://router.srbyte.dev/v1",
+        "apiKey": "{env:SRBYTE_API_KEY}"
+      },
+      "models": {
+        "kr/claude-sonnet-4.5": {
+          "name": "KR Claude Sonnet 4.5"
+        },
+        "kr/claude-haiku-4.5": {
+          "name": "KR Claude Haiku 4.5"
+        },
+        "kr/deepseek-3.2": {
+          "name": "KR DeepSeek 3.2"
+        },
+        "kr/qwen3-coder-next": {
+          "name": "KR Qwen3 Coder Next"
+        },
+        "kr/glm-5": {
+          "name": "KR GLM 5"
+        },
+        "qd/ultimate": {
+          "name": "QD Ultimate"
+        },
+        "qd/auto": {
+          "name": "QD Auto"
+        },
+        "qd/performance": {
+          "name": "QD Performance"
+        },
+        "qd/efficient": {
+          "name": "QD Efficient"
+        },
+        "qd/qmodel_preview": {
+          "name": "QD QModel Preview"
+        },
+        "qd/qmodel": {
+          "name": "QD QModel"
+        },
+        "qd/kmodel_latest": {
+          "name": "QD KModel Latest"
+        },
+        "qd/kmodel": {
+          "name": "QD KModel"
+        },
+        "qd/qmodel_latest": {
+          "name": "QD QModel Latest"
+        },
+        "qd/gm51model": {
+          "name": "QD GM51 Model"
+        },
+        "qd/dmodel": {
+          "name": "QD DModel"
+        },
+        "qd/dfmodel": {
+          "name": "QD DFModel"
+        },
+        "qd/mmodel": {
+          "name": "QD MModel"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/g/gpt-5.6-luna": {
+          "name": "GPT 5.6 Luna"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/opus": {
+          "name": "Opus"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/sonnet": {
+          "name": "Sonnet"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/mimo": {
+          "name": "Mimo"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/opus5": {
+          "name": "Opus 5"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/super": {
+          "name": "Super"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/gemini": {
+          "name": "Gemini"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/g/gpt-5.6-sol": {
+          "name": "GPT 5.6 Sol"
+        },
+        "openai-compatible-chat-0f5be454-20c9-40bc-b7eb-d0a960c5d5a4/g/gpt-5.6-terra": {
+          "name": "GPT 5.6 Terra"
+        },
+        "sonnet-2": {
+          "name": "Sonnet 2"
+        }
+      }
+    },
+    "9router": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:20128/v1",
+        "apiKey": "{env:NINEROUTER_API_KEY}"
+      },
+      "models": {
+        "sr-prod/gpt5.6": {
+          "name": "sr-prod/gpt5.6",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "sr-prod/opus-2": {
+          "name": "sr-prod/opus-2",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "hana-prod/gpt-5.6-luna": {
+          "name": "hana-prod/gpt-5.6-luna",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "hana-prod/gpt-5.6-terra": {
+          "name": "hana-prod/gpt-5.6-terra",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "hana-prod/gpt-5.6-sol": {
+          "name": "hana-prod/gpt-5.6-sol",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "pen-prod/sr/gpt5.6": {
+          "name": "pen-prod/sr/gpt5.6",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "pen-prod/nr/deepseek-v4-flash-0731": {
+          "name": "pen-prod/nr/deepseek-v4-flash-0731",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "pen-prod/nr/kimi-k2.7-code": {
+          "name": "pen-prod/nr/kimi-k2.7-code",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kenari/glm-5-3": {
+          "name": "kenari/glm-5-3",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kenari/gpt-5-6-luna": {
+          "name": "kenari/gpt-5-6-luna",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kenari/deepseek-v4-flash": {
+          "name": "kenari/deepseek-v4-flash",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "moyra-prod/moyra/gpt-5.6-terra": {
+          "name": "moyra-prod/moyra/gpt-5.6-terra",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "moyra-prod/moyra/claude-opus-5": {
+          "name": "moyra-prod/moyra/claude-opus-5",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "moyra-prod/moyra/gpt-5.6-luna": {
+          "name": "moyra-prod/moyra/gpt-5.6-luna",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "moyra-prod/moyra/gpt-5.6-sol": {
+          "name": "moyra-prod/moyra/gpt-5.6-sol",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "hana-prod/claude-opus-5": {
+          "name": "hana-prod/claude-opus-5",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kenari/glm-5-2": {
+          "name": "kenari/glm-5-2",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "moyra-prod/moyra/claude-opus-4.8": {
+          "name": "moyra-prod/moyra/claude-opus-4.8",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "pen-prod/nr/kimi-k3": {
+          "name": "pen-prod/nr/kimi-k3",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "pen-prod/nr/qwen3.8-max": {
+          "name": "pen-prod/nr/qwen3.8-max",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "pen-prod/nr/glm-5.2": {
+          "name": "pen-prod/nr/glm-5.2",
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "disabled_providers": [],
+  "agent": {
+    "explore": {
+      "disable": true
+    },
+    "general": {
+      "disable": true
+    },
+    "explorer": {
+      "description": "Fast explorer subagent for codebase exploration",
+      "mode": "subagent",
+      "model": "9router/kenari/deepseek-v4-flash"
+    }
+  },
+  "lsp": true,
+  "model": ""
+}

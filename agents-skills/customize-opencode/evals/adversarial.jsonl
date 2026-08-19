@@ -1,0 +1,2 @@
+{"case_id":"rephrase_config_001","type":"rephrasing","input":"Modify the OpenCode settings","description":"Same opencode config intent"}
+{"case_id":"boundary_build_001","type":"negative_boundary","input":"Build the application","description":"App build — not opencode config"}

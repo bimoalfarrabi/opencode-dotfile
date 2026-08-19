@@ -1,0 +1,1 @@
+{"case_id":"golden_opencode_001","input":"Add a new MCP server for database access to the OpenCode configuration","expected_output":"opencode_config_update","rubric":["locates the correct config file","follows existing pattern","validates JSON syntax","documents the change"]}
