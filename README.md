@@ -158,6 +158,9 @@ antislop (6), codebase-memory, code-research, explore, feature-research, graphif
 cd ~/Koding/opencode-dotfiles
 ./setup-linux.sh            # prereqs + tautkan asset + render + clone/build open-design + secrets
 ./setup-linux.sh --prereqs  # hanya install/verifikasi prasyarat
+
+# (opsional, khusus WSLg) kustomisasi Lerd Desktop — dark title bar + ikon + override:
+./lerd/setup-lerd.sh        # detail: bagian "Kustomisasi Lerd Desktop (WSLg)" di bawah
 ```
 
 ### Windows (native)
