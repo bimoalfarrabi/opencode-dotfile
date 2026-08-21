@@ -29,6 +29,8 @@ opencode-dotfiles/
 ├── agents-skills/              # → ~/.agents/skills/   (75 skill)
 ├── claude-skills/              # → ~/.claude/skills/   (11 skill)
 ├── lerd/                       # kustomisasi Lerd Desktop WSLg — setup-lerd.sh (lihat lerd/README.md)
+├── docs/
+│   └── windows-terminal.md     # kustomisasi Windows Terminal (Catppuccin Mocha) + cara migrasi
 ├── scripts/
 │   └── render-config.mjs       # ubah opencode.json.template → opencode.json (lintas-platform)
 ├── secrets.env.example         # → salin ke secrets.env (git-ignored), isi API key
@@ -203,6 +205,13 @@ Electron, environment PHP lokal) di WSLg — idempotent dan mudah direplikasi:
 - Batasan: ikon taskbar window tetap penguin di WSLg 1.0.73 (bug microsoft/wslg#1382);
   semua infrastruktur sudah disiapkan sehingga ikon muncul otomatis bila WSLg diperbaiki.
 - Detail lengkap + revert: `lerd/README.md`.
+
+## Kustomisasi Windows Terminal
+
+Windows Terminal dikustomisasi dengan tema **Catppuccin Mocha** (skema 16 warna + tema
+aplikasi dark), font **FiraCode Nerd Font**, acrylic 85%, keybindings tambahan, dan profil
+Ubuntu (WSL) / Laragon. Semua ada di satu file `settings.json` — tinggal disalin ke mesin
+baru. Detail + potongan JSON + langkah migrasi: `docs/windows-terminal.md`.
 
 ## Catatan khusus per mesin (harus direplikasi di tiap mesin)
 
