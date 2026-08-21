@@ -1,0 +1,28 @@
+[Desktop Entry]
+Type=Application
+Name=Lerd
+Comment=Local PHP development environment
+Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=sh.lerd.Desktop --file-forwarding sh.lerd.Desktop @@u %u @@
+Icon=__HOME__/.local/share/icons/hicolor/128x128/apps/Lerd.png
+Categories=Development;
+MimeType=x-scheme-handler/lerd;
+Terminal=false
+StartupWMClass=Lerd
+Actions=dashboard;sites;services;system;
+X-Flatpak=sh.lerd.Desktop
+
+[Desktop Action dashboard]
+Name=Dashboard
+Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=sh.lerd.Desktop sh.lerd.Desktop lerd://open/dashboard
+
+[Desktop Action sites]
+Name=Sites
+Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=sh.lerd.Desktop sh.lerd.Desktop lerd://open/sites
+
+[Desktop Action services]
+Name=Services
+Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=sh.lerd.Desktop sh.lerd.Desktop lerd://open/services
+
+[Desktop Action system]
+Name=System
+Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=sh.lerd.Desktop sh.lerd.Desktop lerd://open/system

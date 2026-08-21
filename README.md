@@ -28,6 +28,7 @@ opencode-dotfiles/
 │   └── skills/                 # 69 skill (termasuk superpowers yang di-vendor)
 ├── agents-skills/              # → ~/.agents/skills/   (75 skill)
 ├── claude-skills/              # → ~/.claude/skills/   (11 skill)
+├── lerd/                       # kustomisasi Lerd Desktop WSLg — setup-lerd.sh (lihat lerd/README.md)
 ├── scripts/
 │   └── render-config.mjs       # ubah opencode.json.template → opencode.json (lintas-platform)
 ├── secrets.env.example         # → salin ke secrets.env (git-ignored), isi API key
@@ -183,6 +184,22 @@ source secrets.env                   # Linux/macOS: tambahkan ke ~/.bashrc
 Di Windows, set variabel yang sama sebagai User environment variables, atau
 jalankan opencode dengan variabel tersebut dalam lingkupnya. OpenCode meresolve
 `{env:VAR}` dari variabel-variabel ini.
+
+## Kustomisasi Lerd Desktop (WSLg)
+
+Modul `lerd/` berisi setup dark mode + title bar untuk Lerd Desktop (Flatpak
+Electron, environment PHP lokal) di WSLg — idempotent dan mudah direplikasi:
+
+```sh
+./lerd/setup-lerd.sh     # patch app + desktop entry + ikon + flatpak override + .wslgconfig + fungsi `lerd`
+```
+
+- Setelah `flatpak update` Lerd, jalankan ulang `./lerd/apply-patch.sh` (patch berada di
+  dalam file flatpak, ikut terhapus oleh update).
+- Restart WSL sekali setelah setup pertama: `wsl --shutdown` di PowerShell Windows.
+- Batasan: ikon taskbar window tetap penguin di WSLg 1.0.73 (bug microsoft/wslg#1382);
+  semua infrastruktur sudah disiapkan sehingga ikon muncul otomatis bila WSLg diperbaiki.
+- Detail lengkap + revert: `lerd/README.md`.
 
 ## Catatan khusus per mesin (harus direplikasi di tiap mesin)
 

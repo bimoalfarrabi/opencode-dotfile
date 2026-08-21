@@ -1,0 +1,14 @@
+# .wslgconfig — konfigurasi WSLg di profil Windows (C:\Users\<user>\.wslgconfig)
+#
+# WSL2_VM_ID: sejak WSL 2.6.2 env ini dihapus oleh WSL, padahal dipakai weston untuk
+#   is_system_distro() (rdprail-shell/shell.h). Tanpa itu app_list_monitor salah mode
+#   dan semua desktop entry gagal terdaftar (issue microsoft/wslg#1388). Nilai bebas.
+#
+# WESTON_RDPRAIL_SHELL_APP_LIST_PATH: folder scan desktop file tambahan (daftar path
+#   dipisah ':'). Default hanya /usr/share/applications dkk — lokasi desktop file user
+#   (~/.local/share/applications, flatpak exports user) tidak di-scan tanpa ini.
+#   (rdprail-shell/app-list.c: "any additional path can be added by
+#   WESTON_RDPRAIL_SHELL_APP_LIST_PATH using .wslgconfig")
+[system-distro-env]
+WSL2_VM_ID=fooo
+WESTON_RDPRAIL_SHELL_APP_LIST_PATH=/home/__USER__/.local/share/applications:/home/__USER__/.local/share/flatpak/exports/share/applications
