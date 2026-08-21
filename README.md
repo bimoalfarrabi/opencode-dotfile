@@ -29,8 +29,10 @@ opencode-dotfiles/
 ├── agents-skills/              # → ~/.agents/skills/   (75 skill)
 ├── claude-skills/              # → ~/.claude/skills/   (11 skill)
 ├── lerd/                       # kustomisasi Lerd Desktop WSLg — setup-lerd.sh (lihat lerd/README.md)
+├── shell/                      # kustomisasi shell: zsh WSL (setup-zsh.sh) + PowerShell profile + tema oh-my-posh
 ├── docs/
-│   └── windows-terminal.md     # kustomisasi Windows Terminal (Catppuccin Mocha) + cara migrasi
+│   ├── windows-terminal.md     # kustomisasi Windows Terminal (Catppuccin Mocha) + cara migrasi
+│   └── shell.md                # kustomisasi shell (zsh WSL + PowerShell 7) + cara migrasi
 ├── scripts/
 │   └── render-config.mjs       # ubah opencode.json.template → opencode.json (lintas-platform)
 ├── secrets.env.example         # → salin ke secrets.env (git-ignored), isi API key
@@ -212,6 +214,17 @@ Windows Terminal dikustomisasi dengan tema **Catppuccin Mocha** (skema 16 warna 
 aplikasi dark), font **FiraCode Nerd Font**, acrylic 85%, keybindings tambahan, dan profil
 Ubuntu (WSL) / Laragon. Semua ada di satu file `settings.json` — tinggal disalin ke mesin
 baru. Detail + potongan JSON + langkah migrasi: `docs/windows-terminal.md`.
+
+## Kustomisasi Shell
+
+Kedua shell memakai tema **Catppuccin Mocha** (senada dengan Windows Terminal & opencode):
+
+- **zsh (WSL Ubuntu)**: prompt PowerShell-style + syntax highlighting + autosuggestion
+  Catppuccin, plugin `zsh-users/*`, `LS_COLORS`. Instal: `./shell/setup-zsh.sh`.
+- **PowerShell 7 (Windows)**: oh-my-posh (tema `zen.toml`) + bridge GNU coreutils.
+
+File konfigurasi ada di `shell/` (zshrc, profile ps1, zen.toml). Detail + migrasi:
+`docs/shell.md`.
 
 ## Catatan khusus per mesin (harus direplikasi di tiap mesin)
 
