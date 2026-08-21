@@ -88,6 +88,16 @@ link_assets() {
       log "  copied $f"
     fi
   done
+
+  log "Installing themes (tui)..."
+  if [ -d "$REPO/config/themes" ]; then
+    mkdir -p "$CONFIG_DIR/themes"
+    for t in "$REPO/config/themes"/*.json; do
+      [ -e "$t" ] || continue
+      cp "$t" "$CONFIG_DIR/themes/$(basename "$t")"
+      log "  copied themes/$(basename "$t")"
+    done
+  fi
 }
 
 # --- render opencode.json ---------------------------------------------------
