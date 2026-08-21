@@ -32,7 +32,8 @@ opencode-dotfiles/
 ├── shell/                      # kustomisasi shell: zsh WSL (setup-zsh.sh) + PowerShell profile + tema oh-my-posh
 ├── docs/
 │   ├── windows-terminal.md     # kustomisasi Windows Terminal (Catppuccin Mocha) + cara migrasi
-│   └── shell.md                # kustomisasi shell (zsh WSL + PowerShell 7) + cara migrasi
+│   ├── shell.md                # kustomisasi shell (zsh WSL + PowerShell 7) + cara migrasi
+│   └── omo-slim.md             # preset agent/model oh-my-opencode-slim: peran + cara ganti model
 ├── scripts/
 │   └── render-config.mjs       # ubah opencode.json.template → opencode.json (lintas-platform)
 ├── secrets.env.example         # → salin ke secrets.env (git-ignored), isi API key
@@ -225,6 +226,14 @@ Kedua shell memakai tema **Catppuccin Mocha** (senada dengan Windows Terminal & 
 
 File konfigurasi ada di `shell/` (zshrc, profile ps1, zen.toml). Detail + migrasi:
 `docs/shell.md`.
+
+## oh-my-opencode-slim (agent/model routing)
+
+Preset `config/oh-my-opencode-slim.json` mengatur role agent → model (default preset
+`opencode-go` lewat router `9router`; ada preset alternatif `openai`). 8 role
+(orchestrator, oracle, explorer, librarian, designer, fixer, observer, council) +
+4 council seat. Penjelasan per role, daftar model aktif, dan **cara ganti model**:
+`docs/omo-slim.md`.
 
 ## Catatan khusus per mesin (harus direplikasi di tiap mesin)
 
