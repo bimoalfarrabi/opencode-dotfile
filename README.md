@@ -229,11 +229,32 @@ File konfigurasi ada di `shell/` (zshrc, profile ps1, zen.toml). Detail + migras
 
 ## oh-my-opencode-slim (agent/model routing)
 
-Preset `config/oh-my-opencode-slim.json` mengatur role agent → model (default preset
-`opencode-go` lewat router `9router`; ada preset alternatif `openai`). 8 role
-(orchestrator, oracle, explorer, librarian, designer, fixer, observer, council) +
-4 council seat. Penjelasan per role, daftar model aktif, dan **cara ganti model**:
-`docs/omo-slim.md`.
+Preset `config/oh-my-opencode-slim.json` mengatur **role agent → model** (default preset
+`opencode-go` lewat router `9router`; ada preset alternatif `openai`).
+
+**Role & model aktif (preset `opencode-go`):**
+
+| Role | Fungsi | Model |
+|------|--------|-------|
+| orchestrator | Koordinator: rencana, routing, delegasi | `9router/kenari/deepseek-v4-flash` |
+| oracle | Arsitektur/review, keputusan besar | `9router/sr-prod/opus-2` |
+| explorer | Recon kodebase cepat | `9router/pen-prod/deepseek-v4-flash-0731` |
+| librarian | Riset docs/library eksternal | `9router/kenari/deepseek-v4-flash` |
+| designer | UI/UX & polish visual | `9router/pen-prod/glm-5.2` |
+| fixer | Eksekusi implementasi terbatas | `9router/kenari/gpt-5-6-luna` |
+| observer | Analisis visual (gambar/PDF) | `9router/moyra-prod/moyra/claude-opus-4.8` |
+| council | Konsensus multi-model | `9router/pen-prod/kimi-k3` |
+
+Council seats: alpha `kenari/glm-5-2`, beta `kenari/kimi-k2-7-code`,
+gamma `kenari/gpt-5-6-luna`, delta `kenari/deepseek-v4-flash`.
+
+**Cara ganti model**: edit `presets."opencode-go".<role>.model` di
+`config/oh-my-opencode-slim.json` (model id harus terdaftar di `provider.9router` /
+`provider.openai` pada `config/opencode.json.template`), sinkronkan ke live
+(`cp config/oh-my-opencode-slim.json ~/.config/opencode/`), lalu **restart OpenCode**.
+Ganti seluruh preset: ubah `"preset": "openai"`. Override sementara:
+`opencode --agent <role> --model <model-id>` / `/model` di sesi.
+Detail lengkap + penjelasan tiap role: `docs/omo-slim.md`.
 
 ## Catatan khusus per mesin (harus direplikasi di tiap mesin)
 
