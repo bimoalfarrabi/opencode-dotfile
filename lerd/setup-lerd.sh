@@ -115,12 +115,28 @@ EOF
   fi
 }
 
+# --- 6. split-DNS fix ----------------------------------------------------------
+install_dns() {
+  log "Memasang lerd-dns-fix.sh + alias \`lerd-dns\` ..."
+  mkdir -p "$HOME_DIR/bin"
+  cp "$LERD/dns/lerd-dns-fix.sh" "$HOME_DIR/bin/lerd-dns-fix.sh"
+  chmod +x "$HOME_DIR/bin/lerd-dns-fix.sh"
+  local rc="$HOME_DIR/.zshrc"
+  if [ -f "$rc" ] && ! grep -q '^alias lerd-dns=' "$rc"; then
+    printf '\n# ---- Lerd split-DNS fix (jalankan setelah lerd dns:repair / install / restart WSL) ----\nalias lerd-dns='"'"'~/bin/lerd-dns-fix.sh'"'"'\n' >> "$rc"
+    log "  alias \`lerd-dns\` ditambahkan ke .zshrc"
+  else
+    log "  alias \`lerd-dns\` sudah ada."
+  fi
+}
+
 # --- run ---------------------------------------------------------------------
 install_patch
 install_desktop_and_icons
 install_override
 install_wslgconfig
 install_zshrc
+install_dns
 
 log "Selesai."
 log "Setelah flatpak update Lerd, jalankan ulang: $LERD/apply-patch.sh"

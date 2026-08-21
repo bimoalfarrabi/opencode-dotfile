@@ -14,6 +14,39 @@ direplikasi ke mesin baru.
 | 4 | Flatpak override | `flatpak override --user --env=XDG_SESSION_TYPE=wayland` | **WAJIB** di WSLg: tanpa ini launcher `--ozone-platform-hint=auto` jatuh ke X11 dan crash (`Missing X server`). |
 | 5 | `.wslgconfig` (Windows) | `C:\Users\<user>\.wslgconfig` | `WSL2_VM_ID` (fix microsoft/wslg#1388 — env dihapus sejak WSL 2.6.2, weston butuh untuk `is_system_distro()`) + `WESTON_RDPRAIL_SHELL_APP_LIST_PATH` (folder scan desktop file tambahan; default WSLg hanya `/usr/share/applications` dkk). |
 | 6 | Fungsi `lerd` | `~/.zshrc` | `lerd() { flatpak run sh.lerd.Desktop "$@"; }` (ditambahkan jika belum ada). |
+| 7 | Fix split-DNS (`dns/lerd-dns-fix.sh`) | `~/bin/lerd-dns-fix.sh` + alias `lerd-dns` di `~/.zshrc` | Memulihkan DNS global setelah `lerd dns:repair` / `lerd install` / restart WSL (lihat bagian DNS di bawah). |
+
+## DNS (split-DNS WSL) — masalah & perbaikan
+
+**Masalah**: Lerd memakai dnsmasq di port `5300` (link `lerd0`) untuk domain `*.test`,
+dan menulis `/etc/systemd/resolved.conf.d/lerd.conf`. Saat `lerd dns:repair` (atau
+`lerd install`) berjalan, file itu ditimpa menjadi **hanya** `127.0.0.1:5300` sebagai DNS
+global → semua resolusi internet di WSL gagal (`.test` tetap jalan, internet mati).
+
+**Solusi**: `lerd-dns-fix.sh` menulis ulang konfigurasi yang benar:
+
+```
+*.test        -> link lerd0     -> 127.0.0.1:5300  (Lerd dnsmasq)
+domain lain   -> Global DNS     -> 1.1.1.1 / 8.8.8.8 (internet)
+```
+
+Cara pakai (idempotent — aman diulang):
+
+```sh
+lerd-dns            # alias dari setup (→ ~/bin/lerd-dns-fix.sh)
+# atau langsung:     ./lerd/dns/lerd-dns-fix.sh
+```
+
+Jalankan saat:
+- Baru selesai `lerd dns:repair` / `lerd install` / update Lerd;
+- Internet di WSL tidak bisa resolve setelah restart WSL;
+- `resolvectl dns` menunjukkan DNS global hanya `127.0.0.1:5300`.
+
+Script-nya butuh sudo (`sudo -n` — passwordless; bila tidak, jalankan manual dan masukkan
+password). Memverifikasi sendiri: uji `lerd-probe.test` (harus 200) + uji internet
+(`raw.githubusercontent.com`). Catatan dari script: `127.0.0.1:5300` yang ikut muncul di
+baris `Global:` adalah artifact tampilan systemd-resolved (DNS per-link `lerd0`), bukan
+DNS global kedua.
 
 ## Cara pakai (mesin baru)
 
@@ -70,6 +103,8 @@ rm -f /mnt/c/Users/$USER/.wslgconfig
 lerd/
 ├── setup-lerd.sh           # orkestrator idempotent (install semua)
 ├── apply-patch.sh          # patch flatpak app (kanonik; = lerd-dark-titlebar.sh)
+├── dns/
+│   └── lerd-dns-fix.sh     # fix split-DNS WSL (setelah lerd dns:repair / install)
 ├── assets/hicolor/…        # ikon Lerd 8 ukuran + svg (single source of truth)
 ├── templates/
 │   ├── Lerd.desktop        # desktop entry (token __HOME__)
