@@ -8,7 +8,7 @@ direplikasi ke mesin baru.
 
 | # | Komponen | Lokasi target | Efek |
 |---|----------|---------------|------|
-| 1 | Patch app (`apply-patch.sh`) | file di dalam flatpak: `.../files/main/src/main.js`, `src/preload.js`, `package.json` | Title bar Chromium yang terang dihilangkan (`frame: false`) → band title bar gelap 40px sendiri (area drag + tombol **— ▢ ✕**) + dashboard digeser 40px; konten dipaksa gelap (`nativeTheme.themeSource='dark'`); `desktopName` → `Lerd.desktop` (app_id Wayland cocok dengan key app-list WSLg). |
+| 1 | Patch app (`apply-patch.sh`) | file di dalam flatpak: `.../files/main/src/main.js`, `src/preload.js`, `package.json` | Title bar Chromium yang terang dihilangkan (`frame: false`) → band title bar gelap 40px sendiri (area drag + tombol **— ▢ ✕**) + dashboard digeser 40px via CSS; konten dipaksa gelap (`nativeTheme.themeSource='dark'`); `desktopName` → `Lerd.desktop` (app_id Wayland cocok dengan key app-list WSLg). Termasuk fix scroll terpotong (lihat "Perbaikan scroll" di bawah). |
 | 2 | Desktop entry | `~/.local/share/applications/Lerd.desktop` | Entry WSLg dengan key `Lerd` (nama file tanpa titik — derivasi key WSLg mengambil segmen setelah titik terakhir, lihat microsoft/wslg#944). |
 | 3 | Ikon | `~/.local/share/icons/hicolor/{16..512}x*/apps/Lerd.png` + svg | `Icon=` di desktop entry memakai **absolute path** (direktori ikon user tidak ada di daftar pencarian WSLg). |
 | 4 | Flatpak override | `flatpak override --user --env=XDG_SESSION_TYPE=wayland` | **WAJIB** di WSLg: tanpa ini launcher `--ozone-platform-hint=auto` jatuh ke X11 dan crash (`Missing X server`). |
@@ -71,6 +71,31 @@ lerd-dark-titlebar.sh        # symlink → repo/lerd/apply-patch.sh (dipasang ol
 ```
 
 File di luar flatpak (desktop entry, ikon, override, `.wslgconfig`) bertahan.
+
+## Perbaikan scroll terpotong (bug)
+
+**Gejala**: setelah patch dark title bar, saat scroll ke paling bawah di dashboard,
+40px terbawah konten terpotong dan tidak bisa dicapai.
+
+**Akar masalah**: versi awal patch mengecilkan mount SPA `<div id="app">` ke
+`calc(100vh - 40px)` + `margin-top:40px` via JS (`shiftApp`). Tapi root layout SPA
+memakai Tailwind `h-screen` = `height:100vh` **tetap** (bukan relatif ke parent), dan
+`<body>` bersifat `overflow-hidden`. Karena root itu tidak ikut mengecil, viewport
+scroll-nya tetap `100vh` di dalam container `100vh - 40px`, sehingga 40px terbawah
+terpotong/tidak bisa di-scroll.
+
+**Solusi**: ganti mutasi DOM JS dengan injeksi `<style>` yang timing-aman (rule otomatis
+berlaku saat SPA client-render muncul), dan paksa root SPA menyesuaikan ukuran parent:
+
+```css
+#app { height: calc(100vh - 40px); margin-top: 40px; }
+#app > .h-screen { height: 100%; }   /* kunci: root SPA ikut mengecil */
+```
+
+Rule `#app > .h-screen { height: 100% }` inilah yang memperbaiki pemotongan — tanpa itu
+root tetap `100vh` dan ekor konten terpotong. `apply-patch.sh` (dan `main.js` yang sudah
+ter-deploy) sudah memuat perbaikan ini; re-apply setelah `flatpak update` tidak akan
+memunculkan bug lagi.
 
 ## Ikon taskbar — status & batas
 
