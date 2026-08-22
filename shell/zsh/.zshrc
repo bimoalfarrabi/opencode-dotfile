@@ -28,16 +28,30 @@ setopt AUTO_MENU                 # tab siklus saat ambigu
 # ---- Completion ----
 autoload -Uz compinit && compinit
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' menu select
+zstyle ':completion:*' menu no          # REQUIRED oleh fzf-tab: biarkan ia menangkap prefix
 zstyle ':completion:*' use-compctl false
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*:*:*:*:*' menu yes select search
 zstyle ':completion:*' group-name ''
-zstyle ':completion:*:*:cd:*:directory-stack' menu yes select
 zstyle ':completion:*' file-sort modification
 
 # ---- Plugins ----
 source ~/.config/zsh/completions/zsh-completions.plugin.zsh
+
+# ---- Fuzzy filesystem completion (fzf + fzf-tab) — ala CachyOS ----
+# Tab = fuzzy picker atas file/direktori NYATA di filesystem (termasuk yang belum
+# pernah dibuka), bukan saran dari history. fzf-tab WAJIB dimuat setelah compinit
+# dan SEBELUM zsh-autosuggestions / zsh-syntax-highlighting (lihat Aloxaf/fzf-tab).
+export PATH="$HOME/.fzf/bin:$PATH"
+source "$HOME/.fzf/shell/key-bindings.zsh" 2>/dev/null   # Ctrl-T file, Ctrl-R history, Alt-C cd
+source "$HOME/.fzf/shell/completion.zsh" 2>/dev/null     # **<Tab> fuzzy completion
+source "$HOME/.config/zsh/fzf-tab/fzf-tab.plugin.zsh" 2>/dev/null
+
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':fzf-tab:*' switch-group '<' '>'
+zstyle ':fzf-tab:*' continuous-trigger '/'   # tiap '/' re-masuk fuzzy search (deep path)
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 --color=always $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:*' fzf-preview 'cat $realpath 2>/dev/null | head -80'
+
 source ~/.config/zsh/syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/autosuggestions/zsh-autosuggestions.zsh
 source ~/.config/zsh/history-substring-search/zsh-history-substring-search.zsh

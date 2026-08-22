@@ -10,8 +10,8 @@ Tema warna menyeluruh **Catppuccin Mocha** (senada dengan Windows Terminal
 
 ```
 Windows Terminal
-├── PowerShell 7 (default profile)   → oh-my-posh (zen.toml) + bridge coreutils
-└── Ubuntu (WSL)                     → zsh: prompt custom + plugin zsh-users + Catppuccin
+├── PowerShell 7 (default profile)   → oh-my-posh (zen.toml) + bridge coreutils + PSFzf
+└── Ubuntu (WSL)                     → zsh: prompt custom + plugin zsh-users + fzf/fzf-tab + Catppuccin
 ```
 
 ## File & lokasi
@@ -22,6 +22,7 @@ Windows Terminal
 | `shell/powershell/Microsoft.PowerShell_profile.ps1` | `%USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` | PowerShell 7 |
 | `shell/oh-my-posh/zen.toml` | `E:\Koding\zen.toml` (path di-profile; ubah bila beda) | oh-my-posh |
 | plugin zsh (bukan di repo — clone saat setup) | `~/.config/zsh/{completions,syntax-highlighting,autosuggestions,history-substring-search}` | zsh |
+| fzf + fzf-tab (bukan di repo — clone saat setup) | `~/.fzf` (binary + shell integration) & `~/.config/zsh/fzf-tab` | zsh |
 
 ## Kustomisasi zsh (WSL Ubuntu)
 
@@ -33,10 +34,16 @@ Diadaptasi dari default shell CachyOS (tanpa oh-my-zsh):
   (builtin/command biru, string kuning, path hijau underline, error merah, komentar abu italic).
 - **Autosuggestion** `fg=#6c7086`; **history** 100k dengan substring-search
   (`bindkey` ↑/↓), share antar sesi, ignore dups.
-- **Navigation**: `AUTO_CD`, `AUTO_PUSHD`, koreksi salah ketik, completion fuzzy
-  (`compinit` + matcher + menu select + `LS_COLORS`).
-- **Plugin** (semua dari `zsh-users/*`, di-clone oleh `shell/setup-zsh.sh`):
-  zsh-completions, zsh-syntax-highlighting, zsh-autosuggestions, zsh-history-substring-search.
+- **Navigation**: `AUTO_CD`, `AUTO_PUSHD`, koreksi salah ketik.
+- **Fuzzy filesystem completion (fzf + fzf-tab, ala CachyOS)**: tekan **Tab** → picker
+  fuzzy interaktif atas file/direktori **nyata** di filesystem — termasuk yang belum pernah
+  dibuka (bukan saran dari history). `continuous-trigger '/'` membuat tiap `/` masuk ulang
+  fuzzy search (deep path). Bonus dari fzf: **Ctrl-T** (cari file), **Ctrl-R** (cari history),
+  **Alt-C** (cd fuzzy), **`**<Tab>`** (completion dari mana saja). Preview file via `cat`/`ls`.
+  Catatan: `zstyle ':completion:*' menu no` (diwajibkan fzf-tab) menggantikan `menu select` lama.
+- **Plugin** (di-clone oleh `shell/setup-zsh.sh`):
+  zsh-users/{completions,syntax-highlighting,autosuggestions,history-substring-search} +
+  **fzf-tab** (Aloxaf) + **fzf** (junegunn, binary di `~/.fzf/bin`).
 - **LS_COLORS Catppuccin Mocha** (truecolor penuh) + utilitas umum + `lerd()` /
   `lerd-dns` (lihat modul `lerd/`).
 - Catatan: powerlevel10k tersedia (`~/.config/zsh/p10k`) tapi **tidak di-source** oleh
@@ -46,6 +53,12 @@ Diadaptasi dari default shell CachyOS (tanpa oh-my-zsh):
 
 - **oh-my-posh** dengan tema `zen.toml` (baris pertama profile:
   `oh-my-posh init pwsh --config 'E:\Koding\zen.toml' | Invoke-Expression`).
+- **Fuzzy completion (PSFzf, ala CachyOS)**: **Tab** = fuzzy picker atas file/direktori
+  nyata (termasuk yang belum pernah dibuka), **Ctrl-T** cari file, **Ctrl-R** cari history.
+  Diaktifkan via `Import-Module PSFzf` + `Set-PsFzfOption -TabExpansion` di profile
+  (nama switch `-TabExpansion`, bukan `-TabCompletion`). Butuh module **PSFzf**
+  (`kelleyma49/PSFzf`) + binary **fzf** di Windows PATH. Blok `coreutils` di bawah
+  meneruskan Tab ke PSReadLine, jadi handler Tab PSFzf tetap jalan.
 - **Bridge GNU coreutils** (blok `DO NOT MODIFY -- coreutils`): menulis ulang perintah
   coreutils (`ls`, `grep`, `cat`, dll) ke `.cmd`-equivalent saat mengetik
   (via override `PSConsoleHostReadLine` + analisis AST), supaya `ls --color=auto` dll
@@ -70,18 +83,24 @@ Lalu buka zsh baru. Bila username beda dari `/home/viasco`, sesuaikan path
 
 1. Install **PowerShell 7** + **oh-my-posh** (`winget install JanDeDobbeleer.OhMyPosh`)
    + **GNU coreutils** (untuk bridge — `C:\Program Files\coreutils\cmd\`).
-2. Salin `shell/powershell/Microsoft.PowerShell_profile.ps1` →
+2. Install **fzf** (`winget install junegunn.fzf`) + **PSFzf**
+   (`Install-Module PSFzf -Scope CurrentUser`).
+3. Salin `shell/powershell/Microsoft.PowerShell_profile.ps1` →
    `%USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1`.
-3. Salin `shell/oh-my-posh/zen.toml` → lokasi sesuai baris pertama profile
+4. Salin `shell/oh-my-posh/zen.toml` → lokasi sesuai baris pertama profile
    (default `E:\Koding\zen.toml` — buat folder `E:\Koding` bila perlu, atau ubah path di profile).
-4. Buka PowerShell baru. Font wajib: **FiraCode Nerd Font** (lihat docs/windows-terminal.md).
+5. Buka PowerShell baru. Font wajib: **FiraCode Nerd Font** (lihat docs/windows-terminal.md).
 
 ## Struktur modul
 
 ```
 shell/
-├── setup-zsh.sh                # instalasi zsh WSL (idempotent)
+├── setup-zsh.sh                # instalasi zsh WSL (idempotent: .zshrc + plugin + fzf/fzf-tab)
 ├── zsh/.zshrc                  # konfigurasi zsh (source of truth)
 ├── powershell/Microsoft.PowerShell_profile.ps1
 └── oh-my-posh/zen.toml         # tema oh-my-posh
 ```
+
+Komponen yang di-clone saat setup (bukan di repo): plugin `zsh-users/*` dan
+`fzf-tab` di `~/.config/zsh/`, serta binary fzf + shell integration di `~/.fzf/`.
+Di Windows, module `PSFzf` + binary `fzf` diinstal via PowerShell/winget.

@@ -1,5 +1,19 @@
 oh-my-posh init pwsh --config 'E:\Koding\zen.toml' | Invoke-Expression
 
+# ---- Fuzzy completion (PSFzf) — ala CachyOS ----
+# Tab = fuzzy picker atas file/direktori NYATA di filesystem (termasuk yang belum
+# pernah dibuka), bukan saran dari history. Butuh module PSFzf + binary fzf di PATH
+# (lihat docs/shell.md):  Install-Module PSFzf -Scope CurrentUser  &  winget install junegunn.fzf
+# Catatan: switch-nya adalah -TabExpansion (bukan -TabCompletion) pada PSFzf v2.7+.
+# Block coreutils PSConsoleHostReadLine di bawah meneruskan Tab ke PSReadLine,
+# sehingga handler Tab dari PSFzf tetap berfungsi.
+Import-Module PSFzf -ErrorAction SilentlyContinue
+if (Get-Command Set-PsFzfOption -ErrorAction SilentlyContinue) {
+    Set-PsFzfOption -TabExpansion
+    Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+    Set-PsFzfOption -EnableAliasFuzzySetLocation
+}
+
 # DO NOT MODIFY -- coreutils -- 60b36fc6-2d59-49df-be51-28dd2f4c3c9a
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # Inlining the template into the profile shaves off ~10ms (25%).

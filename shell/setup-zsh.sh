@@ -6,7 +6,9 @@
 #   1. Salin shell/zsh/.zshrc -> ~/.config/zsh/.zshrc + symlink ~/.zshrc
 #   2. Clone plugin zsh-users (completions, syntax-highlighting,
 #      autosuggestions, history-substring-search) bila belum ada
-#   3. Opsional: --p10k untuk clone powerlevel10k (tidak di-source oleh
+#   3. Install fzf (junegunn/fzf -> ~/.fzf) + fzf-tab (Aloxaf/fzf-tab) untuk
+#      fuzzy filesystem completion ala CachyOS (Tab mendeteksi file/dir baru)
+#   4. Opsional: --p10k untuk clone powerlevel10k (tidak di-source oleh
 #      .zshrc saat ini — hanya disediakan untuk eksperimen)
 #
 # Catatan: .zshrc memuat beberapa path khusus mesin (/home/viasco, $HOME/.bun,
@@ -58,6 +60,29 @@ clone "completions"              "https://github.com/zsh-users/zsh-completions.g
 clone "syntax-highlighting"      "https://github.com/zsh-users/zsh-syntax-highlighting.git"
 clone "autosuggestions"          "https://github.com/zsh-users/zsh-autosuggestions.git"
 clone "history-substring-search" "https://github.com/zsh-users/zsh-history-substring-search.git"
+
+# --- 3. fzf + fzf-tab (fuzzy filesystem completion ala CachyOS) ---
+log "Memasang fzf + fzf-tab ..."
+
+# fzf-tab: plugin zsh — Tab = fuzzy picker atas file/direktori nyata di filesystem
+# (termasuk yang belum pernah dibuka). Wajib dimuat setelah compinit, sebelum
+# autosuggestions/syntax-highlighting (sudah diatur urutannya di .zshrc).
+clone "fzf-tab" "https://github.com/Aloxaf/fzf-tab.git"
+
+# fzf: binary + shell integration (junegunn/fzf, prebuilt, versi terbaru seperti
+# CachyOS). .zshrc men-sourckan $HOME/.fzf/shell/* dan menaruh ~/.fzf/bin di PATH.
+if [ -x "$HOME/.fzf/bin/fzf" ]; then
+  log "  fzf sudah terpasang ($("$HOME/.fzf/bin/fzf" --version | cut -d' ' -f1))."
+else
+  if [ ! -d "$HOME/.fzf" ]; then
+    log "  cloning junegunn/fzf ..."
+    git clone --depth 1 "https://github.com/junegunn/fzf.git" "$HOME/.fzf"
+  fi
+  log "  membangun binary fzf (prebuilt) ..."
+  if ! "$HOME/.fzf/install" --bin; then
+    warn "  '~/.fzf/install --bin' gagal. Install fzf manual (mis. 'sudo apt install fzf') lalu jalankan ulang."
+  fi
+fi
 
 if [ "$WITH_P10K" -eq 1 ]; then
   clone "p10k" "https://github.com/romkatv/powerlevel10k.git"

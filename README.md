@@ -221,7 +221,8 @@ baru. Detail + potongan JSON + langkah migrasi: `docs/windows-terminal.md`.
 Kedua shell memakai tema **Catppuccin Mocha** (senada dengan Windows Terminal & opencode):
 
 - **zsh (WSL Ubuntu)**: prompt PowerShell-style + syntax highlighting + autosuggestion
-  Catppuccin, plugin `zsh-users/*`, `LS_COLORS`. Instal: `./shell/setup-zsh.sh`.
+  Catppuccin, plugin `zsh-users/*`, **fuzzy filesystem completion (fzf + fzf-tab)**,
+  `LS_COLORS`. Instal: `./shell/setup-zsh.sh`.
 - **PowerShell 7 (Windows)**: oh-my-posh (tema `zen.toml`) + bridge GNU coreutils.
 
 File konfigurasi ada di `shell/` (zshrc, profile ps1, zen.toml). Detail + migrasi:
