@@ -72,9 +72,38 @@ Setelah selesai, lerd **otomatis** membuat shim Linux:
 exec "/home/viasco/.local/bin/lerd" php "/home/viasco/.lerd-phpactor/vendor/bin/phpactor" "$@"
 ```
 
-Karena `~/.local/share/lerd/bin` muncul **sebelum** folder Windows di PATH, Zed
-kini memilih shim ini, yang menjalankan phpactor di dalam container PHP 8.2
-(konsisten dengan versi project).
+Karena `~/.local/share/lerd/bin` muncul **sebelum** folder Windows di PATH,
+`which phpactor` di WSL memilih shim ini (yang menjalankan phpactor di dalam
+container PHP 8.2 — konsisten dengan versi project).
+
+> ⚠️ **PATH saja tidak cukup.** Jika GUI Zed berjalan di **Windows** dan remote
+> server-nya di WSL, Zed me-resolve binary phpactor dari **sisi Windows**
+> (memilih `phpactor.bat`) dan me-join path `C:/...` ke cwd WSL — PATH di WSL
+> **tidak** dipakai untuk resolusi ini. Maka **wajib** memaksa binary path lewat
+> config Zed (lihat di bawah), selain shim di PATH.
+
+## Template config Zed (`~/.config/zed/settings.json`)
+
+Tulis di sisi **WSL/Linux** tempat remote server berjalan (bukan sisi Windows):
+
+```json
+{
+  "lsp": {
+    "phpactor": {
+      "binary": {
+        "path": "/home/<user>/.local/share/lerd/bin/phpactor",
+        "arguments": []
+      }
+    }
+  }
+}
+```
+
+- Key LSP **`phpactor`** dan shape `binary → path/arguments` dikonfirmasi dari
+  source Zed (`crates/settings_content/src/project.rs`, struct `BinarySettings`).
+- Ganti `<user>` dengan user WSL (contoh: `/home/viasco/...`).
+- Berlaku per-mesin: file ini **bukan** bagian repo dotfile (berisi path absolut).
+- File ini dibuat manual; tidak ada script setup yang menuliskannya.
 
 ## Verifikasi
 
@@ -93,8 +122,10 @@ printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null
   | ~/.local/share/lerd/bin/phpactor language-server
 ```
 
-Lalu di Zed: `Reload project` atau `Zed: Restart Language Server` agar memakai
-shim baru. Tidak perlu menyentuh `.zed/settings.json` — solusi bekerja via PATH.
+Lalu di Zed: **restart Zed** (atau reload jendela / `Zed: Restart Language
+Server`) agar config WSL-side terbaca dan binary di-resolve ulang. Pastikan
+config `~/.config/zed/settings.json` (template di atas) sudah ada — karena Zed
+GUI berjalan di Windows, solusi PATH saja tidak menjamin binary yang benar.
 
 ## Batasan
 
