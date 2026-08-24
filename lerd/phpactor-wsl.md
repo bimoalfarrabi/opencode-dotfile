@@ -92,7 +92,7 @@ Tulis di sisi **WSL/Linux** tempat remote server berjalan (bukan sisi Windows):
     "phpactor": {
       "binary": {
         "path": "/home/<user>/.local/share/lerd/bin/phpactor",
-        "arguments": []
+        "arguments": ["language-server"]
       }
     }
   }
@@ -104,6 +104,14 @@ Tulis di sisi **WSL/Linux** tempat remote server berjalan (bukan sisi Windows):
 - Ganti `<user>` dengan user WSL (contoh: `/home/viasco/...`).
 - Berlaku per-mesin: file ini **bukan** bagian repo dotfile (berisi path absolut).
 - File ini dibuat manual; tidak ada script setup yang menuliskannya.
+
+> ⚠️ **`arguments: ["language-server"]` wajib.** Zed spawn binary dengan
+> **tanpa argumen** (`args: []`). Tanpa subcommand, phpactor **mencetak help ke
+> stdout** (bukan protokol LSP) → Zed tidak bisa parse header JSON-RPC →
+> `cannot read LSP message headers` → "Server reset the connection". Menambahkan
+> subcommand `language-server` memaksa phpactor masuk mode LSP. Gejala salah
+> konfigurasi ini di log Zed (`~/.local/share/zed/logs/server-workspace-*.log`):
+> `binary path: .../phpactor, args: []` lalu `cannot read LSP message headers`.
 
 ## Verifikasi
 
@@ -117,7 +125,8 @@ which -a phpactor
 # STDIO passthrough (dipakai protokol LSP):
 printf '<?php echo "OK\\n"; ?>' | ~/.local/bin/lerd php
 
-# Handshake LSP initialize:
+# Handshake LSP initialize (WAJIB subcommand language-server;
+# tanpa itu phpactor print help ke stdout, bukan protokol LSP):
 printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":"file:///home/...","capabilities":{}}}\n' \
   | ~/.local/share/lerd/bin/phpactor language-server
 ```
