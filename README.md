@@ -29,6 +29,7 @@ opencode-dotfiles/
 ├── agents-skills/              # → ~/.agents/skills/   (75 skill)
 ├── claude-skills/              # → ~/.claude/skills/   (11 skill)
 ├── lerd/                       # kustomisasi Lerd Desktop WSLg — setup-lerd.sh (lihat lerd/README.md)
+│   └── phpactor-wsl.md         # LSP phpactor di WSL via container lerd (Zed remote)
 ├── shell/                      # kustomisasi shell: zsh WSL (setup-zsh.sh) + PowerShell profile + tema oh-my-posh
 ├── docs/
 │   ├── windows-terminal.md     # kustomisasi Windows Terminal (Catppuccin Mocha) + cara migrasi
@@ -267,6 +268,7 @@ Yang berikut ini **tidak tercakup** oleh repo — ia layanan/binary per-host:
 | **codegraph** | MCP server `codegraph serve --mcp` | lihat https://codegraph.dev — install di Windows |
 | **headroom** | MCP server (nonaktif secara default) | `~/.local/bin/headroom`; `{{HEADROOM_BIN}}` |
 | **daemon open-design** | MCP server `node .../apps/daemon/dist/cli.js mcp` | di-clone + di-build oleh setup; daemon harus dapat dijangkau di `http://127.0.0.1:34215` |
+| **phpactor (WSL)** | LSP PHP untuk Zed remote di WSL — dijalankan via container lerd (home composer terpisah `~/.lerd-phpactor` + shim `~/.local/share/lerd/bin/phpactor`) | `lerd/phpactor-wsl.md` |
 
 ## 9Router di Windows (native vs WSL)
 

@@ -106,6 +106,13 @@ jalur asosiasi window→taskbar WSLg mengirim `appIcon: nil`
 (`send_associate_window_app_id` — keluarga bug microsoft/wslg#1382, masih open).
 Ikon akan muncul otomatis bila WSLg diperbaiki; tidak ada kerja tambahan.
 
+## PHPactor LSP (Zed remote di WSL) — via container lerd
+
+phpactor di WSL gagal distart oleh Zed karena `PATH` memilih `phpactor.bat`
+Windows (tidak bisa dieksekusi WSL). Solusinya: instal phpactor di **home composer
+terpisah** di dalam container, biarkan lerd membuat shim Linux yang mendahului
+PATH Windows. Detail lengkap + verifikasi: `lerd/phpactor-wsl.md`.
+
 ## Revert
 
 ```sh
