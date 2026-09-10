@@ -109,13 +109,28 @@ menyebabkan GUI tampil "v1.33.1 installed, 1.34.3 available" padahal CLI sudah v
 Dua masalah saat membuka situs `*.test` dari WSL (diperbaiki 2026-08-22):
 
 **1. Klik "Open web project" tidak terjadi apa-apa.**
-WSL tidak punya desktop environment → `xdg-open` tidak punya handler browser, sehingga
-rantai *dashboard → portal flatpak → xdg-open* berhenti diam-diam. Solusi: handler
-`~/.local/bin/lerd-browser` (dari `shell/bin/lerd-browser`) yang meneruskan URL ke
-**Brave Origin** (browser Linux/WSLg, `/opt/brave.com/brave-origin/brave`), didaftarkan via
-`$BROWSER` (`.zshrc` untuk interaktif) + `~/.config/environment.d/99-lerd-browser.conf`
-(untuk portal flatpak — wajib, karena portal tidak baca env shell interaktif).
-Dipasang oleh `./shell/setup-zsh.sh`.
+Akar masalah (riset + bukti journal, 2026-08-22): rantai *dashboard → `window.open` →
+`setWindowOpenHandler` → `shell.openExternal` → xdg-open flatpak → portal
+`org.freedesktop.portal.OpenURI`*. Portal ini diimplementasikan di frontend
+xdg-desktop-portal **via GIO/GAppInfo** — ia **mengabaikan `$BROWSER`** dan memilih
+handler dari `.desktop` + `mimeapps.list` (`x-scheme-handler/http`). Handler default
+waktu itu `brave-origin.desktop` (sistem), di-launch proses portal **tanpa
+`DISPLAY`/`WAYLAND_DISPLAY`** → Brave langsung exit (`Missing X server or $DISPLAY`).
+
+Fix (dipasang `./shell/setup-zsh.sh`):
+- Handler user `~/.local/share/applications/lerd-browser.desktop`
+  (`Exec=~/.local/bin/lerd-browser %u`) + `~/.config/mimeapps.list` menetapkannya
+  sebagai default `x-scheme-handler/{http,https}` (mengalahkan default sistem).
+- Wrapper `~/.local/bin/lerd-browser` mengekspor `DISPLAY=:0`, `WAYLAND_DISPLAY=wayland-0`,
+  `XDG_RUNTIME_DIR` sebelum exec **Brave Origin** (Linux/WSLg,
+  `/opt/brave.com/brave-origin/brave`) — proses yang di-spawn portal bisa init platform
+  dan hand-off URL ke instance Brave yang sudah berjalan.
+- `$BROWSER` + `environment.d` tetap dipasang (berguna untuk `xdg-open` interaktif),
+  tapi **portal tidak memakainya** — yang berperan adalah .desktop/mimeapps.
+
+Verifikasi: `gdbus call --session --dest org.freedesktop.portal.Desktop --object-path
+/org/freedesktop/portal/desktop --method org.freedesktop.portal.OpenURI.OpenURI ""
+"https://example.com" "{}"` → request diterima, journal bersih dari `Missing X server`.
 
 **2. Browser menampilkan "Not secure" / HTTPS dicoret merah.**
 Situs `*.test` diserve HTTPS dengan sertifikat mkcert (`CN=mkcert viasco@viasco-pc`).

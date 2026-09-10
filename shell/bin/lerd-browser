@@ -22,6 +22,9 @@ if [ $# -eq 0 ]; then
 fi
 
 if [ -x "$BRAVE_LINUX" ]; then
+  export DISPLAY="${DISPLAY:-:0}"
+  export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
   exec "$BRAVE_LINUX" "$@"
 fi
 

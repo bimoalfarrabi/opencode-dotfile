@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Lerd Browser (Brave Origin)
+Comment=Open http/https URLs in Brave Origin via lerd-browser
+Exec=__HOME__/.local/bin/lerd-browser %u
+Icon=brave-browser
+Terminal=false
+Categories=Network;WebBrowser;
+MimeType=x-scheme-handler/http;x-scheme-handler/https;
+StartupNotify=true

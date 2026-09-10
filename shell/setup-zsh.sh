@@ -97,6 +97,12 @@ cp "$REPO/shell/bin/lerd-browser" "$HOME/.local/bin/lerd-browser"
 chmod +x "$HOME/.local/bin/lerd-browser"
 log "  ~/.local/bin/lerd-browser (handler \$BROWSER)"
 
+mkdir -p "$HOME/.local/share/applications" "$HOME/.config"
+sed "s|__HOME__|$HOME|g" "$REPO/shell/applications/lerd-browser.desktop" > "$HOME/.local/share/applications/lerd-browser.desktop"
+cp "$REPO/shell/mimeapps.list" "$HOME/.config/mimeapps.list"
+log "  ~/.local/share/applications/lerd-browser.desktop (http/https handler)"
+log "  ~/.config/mimeapps.list (default http/https handler)"
+
 mkdir -p "$HOME/.config/environment.d"
 cp "$REPO/shell/environment.d/99-lerd-browser.conf" "$HOME/.config/environment.d/99-lerd-browser.conf"
 log "  ~/.config/environment.d/99-lerd-browser.conf (portal flatpak)"
