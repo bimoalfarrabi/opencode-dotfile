@@ -88,5 +88,22 @@ if [ "$WITH_P10K" -eq 1 ]; then
   clone "p10k" "https://github.com/romkatv/powerlevel10k.git"
 fi
 
+# --- 4. browser handler WSL (Lerd GUI "Open web project" -> Brave Windows) ---
+# WSL tanpa DE: xdg-open tidak punya handler, jadi klik Open di Lerd GUI tidak
+# terjadi apa-apa. Pasang wrapper + BROWSER (interaktif & portal flatpak).
+log "Memasang browser handler (WSL -> Brave Windows) ..."
+mkdir -p "$HOME/.local/bin"
+cp "$REPO/shell/bin/lerd-browser" "$HOME/.local/bin/lerd-browser"
+chmod +x "$HOME/.local/bin/lerd-browser"
+log "  ~/.local/bin/lerd-browser (handler \$BROWSER)"
+
+mkdir -p "$HOME/.config/environment.d"
+cp "$REPO/shell/environment.d/99-lerd-browser.conf" "$HOME/.config/environment.d/99-lerd-browser.conf"
+log "  ~/.config/environment.d/99-lerd-browser.conf (portal flatpak)"
+if command -v systemctl >/dev/null 2>&1 && systemctl --user is-system-running >/dev/null 2>&1; then
+  systemctl --user import-environment BROWSER 2>/dev/null || true
+  systemctl --user restart xdg-desktop-portal.service xdg-desktop-portal-gtk.service 2>/dev/null || warn "  restart portal gagal — restart WSL sekali agar portal memakai BROWSER baru."
+fi
+
 log "Selesai. Buka zsh baru (atau: source ~/.zshrc)."
 warn "Jika username bukan /home/viasco, sesuaikan path di $ZSHDIR/.zshrc (bagian PATH, bun, lerd, nvm)."

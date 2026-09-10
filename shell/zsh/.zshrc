@@ -159,6 +159,10 @@ alias lerd-dns='~/bin/lerd-dns-fix.sh'
 export EDITOR="nano"
 export VISUAL="$EDITOR"
 
+# Buka URL (dari xdg-open / CLI) di Brave Windows via wrapper WSL.
+# (Untuk portal flatpak dipakai juga ~/.config/environment.d/99-lerd-browser.conf)
+export BROWSER="$HOME/.local/bin/lerd-browser"
+
 # ---- Alias CachyOS-style ----
 alias ls='ls --color=auto'
 alias ll='ls -lah'

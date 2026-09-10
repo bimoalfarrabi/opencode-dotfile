@@ -46,6 +46,9 @@ Diadaptasi dari default shell CachyOS (tanpa oh-my-zsh):
   **fzf-tab** (Aloxaf) + **fzf** (junegunn, binary di `~/.fzf/bin`).
 - **LS_COLORS Catppuccin Mocha** (truecolor penuh) + utilitas umum + `lerd()` /
   `lerd-dns` (lihat modul `lerd/`).
+- **Browser handler WSL** (`~/.local/bin/lerd-browser` + `$BROWSER` + env `environment.d`):
+  xdg-open (dipakai Lerd GUI via portal) membuka URL di **Brave Origin** Linux/WSLg —
+  WSL tanpa DE tidak punya handler browser default.
 - Catatan: powerlevel10k tersedia (`~/.config/zsh/p10k`) tapi **tidak di-source** oleh
   `.zshrc` saat ini.
 
@@ -95,8 +98,10 @@ Lalu buka zsh baru. Bila username beda dari `/home/viasco`, sesuaikan path
 
 ```
 shell/
-├── setup-zsh.sh                # instalasi zsh WSL (idempotent: .zshrc + plugin + fzf/fzf-tab)
+├── setup-zsh.sh                # instalasi zsh WSL (idempotent: .zshrc + plugin + fzf/fzf-tab + browser handler)
 ├── zsh/.zshrc                  # konfigurasi zsh (source of truth)
+├── bin/lerd-browser            # handler xdg-open WSL -> Brave Origin (dipasang ke ~/.local/bin)
+├── environment.d/99-lerd-browser.conf  # $BROWSER untuk portal flatpak
 ├── powershell/Microsoft.PowerShell_profile.ps1
 └── oh-my-posh/zen.toml         # tema oh-my-posh
 ```

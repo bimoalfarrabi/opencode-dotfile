@@ -104,6 +104,35 @@ systemctl --user restart lerd-ui.service
 Lalu buka ulang app. (Catatan 2026-08-22: daemon lama yang start sebelum update binary
 menyebabkan GUI tampil "v1.33.1 installed, 1.34.3 available" padahal CLI sudah v1.34.3.)
 
+## Buka web project + sertifikat HTTPS di WSL (Brave Origin)
+
+Dua masalah saat membuka situs `*.test` dari WSL (diperbaiki 2026-08-22):
+
+**1. Klik "Open web project" tidak terjadi apa-apa.**
+WSL tidak punya desktop environment → `xdg-open` tidak punya handler browser, sehingga
+rantai *dashboard → portal flatpak → xdg-open* berhenti diam-diam. Solusi: handler
+`~/.local/bin/lerd-browser` (dari `shell/bin/lerd-browser`) yang meneruskan URL ke
+**Brave Origin** (browser Linux/WSLg, `/opt/brave.com/brave-origin/brave`), didaftarkan via
+`$BROWSER` (`.zshrc` untuk interaktif) + `~/.config/environment.d/99-lerd-browser.conf`
+(untuk portal flatpak — wajib, karena portal tidak baca env shell interaktif).
+Dipasang oleh `./shell/setup-zsh.sh`.
+
+**2. Browser menampilkan "Not secure" / HTTPS dicoret merah.**
+Situs `*.test` diserve HTTPS dengan sertifikat mkcert (`CN=mkcert viasco@viasco-pc`).
+Root CA sudah ada di store sistem WSL (`/etc/ssl/certs/lerd-mkcert-rootCA.pem` +
+symlink hash `ee488f2c.0`) — itu cukup untuk OpenSSL/curl. Tapi browser Chromium
+(Brave Origin) memakai **NSS db user** (`~/.pki/nssdb`), yang tadinya tidak ada.
+Fix (tanpa sudo):
+```sh
+mkdir -p ~/.pki/nssdb && chmod 700 ~/.pki/nssdb
+certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "Lerd mkcert (viasco)" \
+  -i ~/.local/share/mkcert/rootCA.pem
+# verifikasi: certutil -d sql:$HOME/.pki/nssdb -L   -> "Lerd mkcert (viasco) C,,"
+```
+Lalu **restart Brave Origin** (Chromium baru membaca NSS db saat start).
+Jika Lerd membuat CA baru, ulangi import di atas. Verifikasi cepat server-side:
+`curl -sS https://<site>.test/` harus `ssl_verify=0`.
+
 ## Perbaikan scroll terpotong (bug)
 
 **Gejala**: setelah patch dark title bar, saat scroll ke paling bawah di dashboard,

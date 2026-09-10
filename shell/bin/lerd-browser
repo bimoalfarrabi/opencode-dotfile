@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# ===========================================================================
+# lerd-browser — buka URL dari WSL di browser Brave Origin (Linux/WSLg)
+#
+# WSL tidak punya desktop environment, jadi xdg-open (yang dipakai Lerd GUI
+# via portal flatpak) tidak punya handler browser — klik "Open web project"
+# diam-diam tidak terjadi apa-apa. Script ini jadi handler: semua URL http/https
+# diteruskan ke Brave Origin (Linux, WSLg). Fallback: Brave Windows.
+#
+# Dipakai lewat:
+#   export BROWSER="$HOME/.local/bin/lerd-browser"     # xdg-open (interaktif)
+#   ~/.config/environment.d/99-lerd-browser.conf       # portal (systemd user)
+# ===========================================================================
+set -euo pipefail
+
+BRAVE_LINUX="/opt/brave.com/brave-origin/brave"
+BRAVE_WIN="/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
+
+if [ $# -eq 0 ]; then
+  echo "usage: lerd-browser <url>" >&2
+  exit 1
+fi
+
+if [ -x "$BRAVE_LINUX" ]; then
+  exec "$BRAVE_LINUX" "$@"
+fi
+
+if [ -x "$BRAVE_WIN" ]; then
+  exec "$BRAVE_WIN" "$@"
+fi
+
+# Fallback terakhir: default browser Windows (cmd.exe start) — tanpa admin.
+exec cmd.exe /c start "" "$1"
