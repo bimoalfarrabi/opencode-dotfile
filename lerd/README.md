@@ -91,6 +91,19 @@ Catatan bug yang diperbaiki (2026-08-22): `lerd update` di terminal pernah membu
 karena fungsi `lerd()` di `.zshrc` menutupi binary CLI. Sekarang fungsi hanya membuka GUI
 bila dipanggil tanpa argumen; dengan argumen, diteruskan ke CLI asli.
 
+**Gotcha: dashboard masih tampil versi lama setelah `lerd update`.** Daemon dashboard
+(`lerd serve-ui`, unit `lerd-ui.service`) adalah proses yang **sudah berjalan** dengan
+binary lama — `lerd update` mengganti file di disk tapi **tidak me-restart** daemon yang
+sedang jalan. Akibatnya GUI tetap menampilkan versi lama dan bilang "update available"
+walau CLI sudah di versi terbaru. Restart daemon-nya:
+```sh
+systemctl --user restart lerd-ui.service
+# verifikasi: curl -s http://127.0.0.1:7073/api/version
+#   -> {"current":"1.34.3","latest":"","has_update":false}
+```
+Lalu buka ulang app. (Catatan 2026-08-22: daemon lama yang start sebelum update binary
+menyebabkan GUI tampil "v1.33.1 installed, 1.34.3 available" padahal CLI sudah v1.34.3.)
+
 ## Perbaikan scroll terpotong (bug)
 
 **Gejala**: setelah patch dark title bar, saat scroll ke paling bawah di dashboard,
