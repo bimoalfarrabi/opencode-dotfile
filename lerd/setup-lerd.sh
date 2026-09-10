@@ -110,7 +110,15 @@ install_zshrc() {
     cat >> "$rc" <<'EOF'
 
 # ---- Lerd Desktop (dark mode ditangani patch; lihat opencode-dotfile/lerd) ----
-lerd() { flatpak run sh.lerd.Desktop "$@"; }
+# TANPA argumen = buka GUI; DENGAN argumen = CLI asli (lerd update, start, ...).
+# (Fungsi menutupi binary ~/.local/bin/lerd — jangan sampai menghalangi CLI.)
+lerd() {
+  if [ $# -eq 0 ]; then
+    flatpak run sh.lerd.Desktop
+  else
+    "$HOME/.local/bin/lerd" "$@"
+  fi
+}
 EOF
   fi
 }

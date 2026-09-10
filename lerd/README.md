@@ -13,7 +13,7 @@ direplikasi ke mesin baru.
 | 3 | Ikon | `~/.local/share/icons/hicolor/{16..512}x*/apps/Lerd.png` + svg | `Icon=` di desktop entry memakai **absolute path** (direktori ikon user tidak ada di daftar pencarian WSLg). |
 | 4 | Flatpak override | `flatpak override --user --env=XDG_SESSION_TYPE=wayland` | **WAJIB** di WSLg: tanpa ini launcher `--ozone-platform-hint=auto` jatuh ke X11 dan crash (`Missing X server`). |
 | 5 | `.wslgconfig` (Windows) | `C:\Users\<user>\.wslgconfig` | `WSL2_VM_ID` (fix microsoft/wslg#1388 — env dihapus sejak WSL 2.6.2, weston butuh untuk `is_system_distro()`) + `WESTON_RDPRAIL_SHELL_APP_LIST_PATH` (folder scan desktop file tambahan; default WSLg hanya `/usr/share/applications` dkk). |
-| 6 | Fungsi `lerd` | `~/.zshrc` | `lerd() { flatpak run sh.lerd.Desktop "$@"; }` (ditambahkan jika belum ada). |
+| 6 | Fungsi `lerd` | `~/.zshrc` | Wrapper pintar: `lerd` (tanpa argumen) membuka Desktop app; `lerd <perintah>` diteruskan ke CLI asli (`~/.local/bin/lerd` — `update`, `start`, `dashboard`, dll). Diperbaiki 2026-08-22: versi lama (`lerd() { flatpak run sh.lerd.Desktop "$@"; }`) menutupi CLI sehingga `lerd update` malah membuka GUI. |
 | 7 | Fix split-DNS (`dns/lerd-dns-fix.sh`) | `~/bin/lerd-dns-fix.sh` + alias `lerd-dns` di `~/.zshrc` | Memulihkan DNS global setelah `lerd dns:repair` / `lerd install` / restart WSL (lihat bagian DNS di bawah). |
 
 ## DNS (split-DNS WSL) — masalah & perbaikan
@@ -71,6 +71,25 @@ lerd-dark-titlebar.sh        # symlink → repo/lerd/apply-patch.sh (dipasang ol
 ```
 
 File di luar flatpak (desktop entry, ikon, override, `.wslgconfig`) bertahan.
+
+## Update Lerd — dua kanal terpisah
+
+Lerd punya **dua komponen yang diperbarui lewat kanal berbeda**:
+
+| Komponen | Cara update | Keterangan |
+|----------|-------------|------------|
+| **CLI + lingkungan** (`~/.local/bin/lerd`, DNS, nginx, PHP-FPM, daemon dashboard) | `lerd update` di terminal | Update CLI → mengganti binary + menerapkan ulang infrastruktur (restart unit). |
+| **Desktop app** (Electron, Flatpak `sh.lerd.Desktop`) | `flatpak update sh.lerd.Desktop` | Aplikasi window-nya Flatpak — CLI `update` **tidak** menyentuh ini. Setelah `flatpak update`, re-apply patch title bar (`lerd-dark-titlebar.sh`). |
+
+**Tombol "Update" di dalam GUI**: menampilkan update untuk **CLI/env** (memanggil
+`/api/lerd/update-terminal` di daemon). Setelah diklik, window app menutup — ini perilaku
+normal: update CLI me-restart daemon, dan (berbeda dari installer native) Flatpak tidak
+me-relaunch window-nya sendiri. **Buka ulang app setelah update selesai.** Untuk update
+Desktop app, tetap via `flatpak update sh.lerd.Desktop`.
+
+Catatan bug yang diperbaiki (2026-08-22): `lerd update` di terminal pernah membuka GUI
+karena fungsi `lerd()` di `.zshrc` menutupi binary CLI. Sekarang fungsi hanya membuka GUI
+bila dipanggil tanpa argumen; dengan argumen, diteruskan ke CLI asli.
 
 ## Perbaikan scroll terpotong (bug)
 

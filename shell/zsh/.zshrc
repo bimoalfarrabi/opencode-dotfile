@@ -140,7 +140,17 @@ export PATH="/home/viasco/.local/share/lerd/bin:$PATH"
 # ---- Lerd (Electron/flatpak) ----
 # Dark mode (konten + title bar) ditangani oleh patch di dalam app,
 # lihat ~/.local/bin/lerd-dark-titlebar.sh (re-apply setelah update Lerd).
-lerd() { flatpak run sh.lerd.Desktop "$@"; }
+#
+# Wrapper pintar: TANPA argumen = buka Desktop app (GUI); DENGAN argumen =
+# terusan ke CLI asli (~/.local/bin/lerd — update, start, dashboard, dll).
+# Tanpa ini `lerd update` dkk. malah membuka GUI karena fungsi menutupi binary.
+lerd() {
+  if [ $# -eq 0 ]; then
+    flatpak run sh.lerd.Desktop
+  else
+    "$HOME/.local/bin/lerd" "$@"
+  fi
+}
 
 # Perbaiki split-DNS Lerd di WSL (tulis ulang Global DNS + routing *.test)
 alias lerd-dns='~/bin/lerd-dns-fix.sh'
