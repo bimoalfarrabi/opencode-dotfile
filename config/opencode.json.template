@@ -39,12 +39,50 @@
         "X-API-Key": "{env:NEEDMCP_API_KEY}"
       }
     },
+    "21st": {
+      "type": "remote",
+      "url": "https://21st.dev/api/mcp",
+      "enabled": true,
+      "headers": {
+        "x-api-key": "{env:TWENTYFIRST_API_KEY}"
+      }
+    },
     "codegraph": {
       "type": "local",
       "command": [
         "codegraph",
         "serve",
         "--mcp"
+      ],
+      "enabled": true
+    },
+    "lerd": {
+      "type": "local",
+      "command": [
+        "lerd",
+        "mcp"
+      ],
+      "enabled": true
+    },
+    "rea": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "rea-agents@6.4.0",
+        "mcp"
+      ],
+      "enabled": true,
+      "environment": {
+        "GHIDRA_INSTALL_DIR": "{{REA_GHIDRA_DIR}}",
+        "JAVA_HOME": "{{REA_JAVA_HOME}}"
+      }
+    },
+    "web-search": {
+      "type": "local",
+      "command": [
+        "node",
+        "{{WEB_SEARCH_MCP_DIR}}/dist/index.js"
       ],
       "enabled": true
     }
@@ -1203,266 +1241,965 @@
           "name": "Sonnet 2"
         }
       }
-    },
+    }
+  },
+  "providers": {
     "9router": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "http://127.0.0.1:20128/v1",
-        "apiKey": "{env:NINEROUTER_API_KEY}"
-      },
       "models": {
-        "sr-prod/gpt5.6": {
-          "name": "sr-prod/gpt5.6",
-          "modalities": {
+        "hana-prod/claude-opus-5": {
+          "name": "hana-prod/claude-opus-5",
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
-          }
-        },
-        "sr-prod/opus-2": {
-          "name": "sr-prod/opus-2",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
             ],
-            "output": [
-              "text"
-            ]
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
           }
         },
         "hana-prod/gpt-5.6-luna": {
           "name": "hana-prod/gpt-5.6-luna",
-          "modalities": {
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
-          }
-        },
-        "hana-prod/gpt-5.6-terra": {
-          "name": "hana-prod/gpt-5.6-terra",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
             ],
-            "output": [
-              "text"
-            ]
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
           }
         },
         "hana-prod/gpt-5.6-sol": {
           "name": "hana-prod/gpt-5.6-sol",
-          "modalities": {
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
           }
         },
-        "pen-prod/sr/gpt5.6": {
-          "name": "pen-prod/sr/gpt5.6",
-          "modalities": {
+        "hana-prod/gpt-5.6-terra": {
+          "name": "hana-prod/gpt-5.6-terra",
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
           }
         },
-        "pen-prod/nr/deepseek-v4-flash-0731": {
-          "name": "pen-prod/nr/deepseek-v4-flash-0731",
-          "modalities": {
+        "kenari/deepseek-v4-1-flash": {
+          "name": "kenari/deepseek-v4-1-flash",
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
-          }
-        },
-        "pen-prod/nr/kimi-k2.7-code": {
-          "name": "pen-prod/nr/kimi-k2.7-code",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
             ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "kenari/glm-5-3": {
-          "name": "kenari/glm-5-3",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "kenari/gpt-5-6-luna": {
-          "name": "kenari/gpt-5-6-luna",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
           }
         },
         "kenari/deepseek-v4-flash": {
           "name": "kenari/deepseek-v4-flash",
-          "modalities": {
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
           }
         },
-        "moyra-prod/moyra/gpt-5.6-terra": {
-          "name": "moyra-prod/moyra/gpt-5.6-terra",
-          "modalities": {
+        "kenari/deepseek-v4-pro": {
+          "name": "kenari/deepseek-v4-pro",
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
-          }
-        },
-        "moyra-prod/moyra/claude-opus-5": {
-          "name": "moyra-prod/moyra/claude-opus-5",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
             ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "moyra-prod/moyra/gpt-5.6-luna": {
-          "name": "moyra-prod/moyra/gpt-5.6-luna",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "moyra-prod/moyra/gpt-5.6-sol": {
-          "name": "moyra-prod/moyra/gpt-5.6-sol",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "hana-prod/claude-opus-5": {
-          "name": "hana-prod/claude-opus-5",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
           }
         },
         "kenari/glm-5-2": {
           "name": "kenari/glm-5-2",
-          "modalities": {
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "kenari/glm-5-3": {
+          "name": "kenari/glm-5-3",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "kenari/glm-5-3-flash": {
+          "name": "kenari/glm-5-3-flash",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          }
+        },
+        "kenari/gpt-5-6-luna": {
+          "name": "kenari/gpt-5-6-luna",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 400000,
+            "output": 64000
+          }
+        },
+        "kenari/gpt-6-luna": {
+          "name": "kenari/gpt-6-luna",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1050000,
+            "output": 64000
+          }
+        },
+        "kenari/grok-4-6": {
+          "name": "kenari/grok-4-6",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 256000,
+            "output": 64000
           }
         },
         "moyra-prod/moyra/claude-opus-4.8": {
           "name": "moyra-prod/moyra/claude-opus-4.8",
-          "modalities": {
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
           }
         },
-        "pen-prod/nr/kimi-k3": {
-          "name": "pen-prod/nr/kimi-k3",
-          "modalities": {
+        "moyra-prod/moyra/claude-opus-5": {
+          "name": "moyra-prod/moyra/claude-opus-5",
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
           }
         },
-        "pen-prod/nr/qwen3.8-max": {
-          "name": "pen-prod/nr/qwen3.8-max",
-          "modalities": {
+        "moyra-prod/moyra/gpt-5.6-luna": {
+          "name": "moyra-prod/moyra/gpt-5.6-luna",
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
           }
         },
-        "pen-prod/nr/glm-5.2": {
-          "name": "pen-prod/nr/glm-5.2",
-          "modalities": {
+        "moyra-prod/moyra/gpt-5.6-sol": {
+          "name": "moyra-prod/moyra/gpt-5.6-sol",
+          "capabilities": {
             "input": [
               "text",
               "image"
             ],
             "output": [
               "text"
-            ]
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          }
+        },
+        "moyra-prod/moyra/gpt-5.6-terra": {
+          "name": "moyra-prod/moyra/gpt-5.6-terra",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          }
+        },
+        "octa/deepseek-v4.1-flash": {
+          "name": "octa/deepseek-v4.1-flash",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "octa/gpt-6-luna": {
+          "name": "octa/gpt-6-luna",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1050000,
+            "output": 64000
+          }
+        },
+        "octa/kimi-k3": {
+          "name": "octa/kimi-k3",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 64000
+          }
+        },
+        "pen-prod/cyber-model": {
+          "name": "pen-prod/cyber-model",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "supported": false
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        },
+        "pen-prod/deepseek-v4-flash-0731": {
+          "name": "pen-prod/deepseek-v4-flash-0731",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/deepseek-v4-pro-0813": {
+          "name": "pen-prod/deepseek-v4-pro-0813",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/deepseek-v4.1-flash": {
+          "name": "pen-prod/deepseek-v4.1-flash",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/deepseek-v4.1-flash-uncensored": {
+          "name": "pen-prod/deepseek-v4.1-flash-uncensored",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/glm-5.2": {
+          "name": "pen-prod/glm-5.2",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/glm-5.3": {
+          "name": "pen-prod/glm-5.3",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/kimi-k2.7-code": {
+          "name": "pen-prod/kimi-k2.7-code",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 262144,
+            "output": 64000
+          }
+        },
+        "pen-prod/kimi-k3": {
+          "name": "pen-prod/kimi-k3",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 64000
+          }
+        },
+        "pen-prod/minimax-m3": {
+          "name": "pen-prod/minimax-m3",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/qwen3.7-max": {
+          "name": "pen-prod/qwen3.7-max",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/qwen3.7-plus": {
+          "name": "pen-prod/qwen3.7-plus",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "pen-prod/qwen3.8-27b": {
+          "name": "pen-prod/qwen3.8-27b",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 262144,
+            "output": 64000
+          }
+        },
+        "pen-prod/qwen3.8-max": {
+          "name": "pen-prod/qwen3.8-max",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 64000
+          }
+        },
+        "sr-prod/gpt5.6": {
+          "name": "sr-prod/gpt5.6",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
+          }
+        },
+        "sr-prod/opus-2": {
+          "name": "sr-prod/opus-2",
+          "capabilities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ],
+            "reasoning": {
+              "effort": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ],
+              "supported": true,
+              "toggle": true
+            },
+            "tools": true
           }
         }
+      },
+      "name": "9router",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "apiKey": "{env:NINEROUTER_API_KEY}",
+        "baseURL": "http://127.0.0.1:20128/v1"
       }
     }
   },
@@ -1477,9 +2214,9 @@
     "explorer": {
       "description": "Fast explorer subagent for codebase exploration",
       "mode": "subagent",
-      "model": "9router/kenari/deepseek-v4-flash"
+      "model": "9router/kenari/deepseek-v4-1-flash"
     }
   },
   "lsp": true,
-  "model": ""
+  "model": "9router/kenari/deepseek-v4-1-flash"
 }

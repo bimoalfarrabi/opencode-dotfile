@@ -101,7 +101,25 @@ function Invoke-Secrets {
     Write-Warning "Created $secretsPath — edit it and fill in your API keys, then re-run."
     return $false
   }
-  Write-Step "secrets.env present. Set these as User environment variables (System Properties -> Environment Variables), or run opencode with them in scope."
+
+  # opencode serve / the background service does not inherit your shell env, so
+  # {env:VAR} placeholders only resolve for keys registered in service config.
+  $opencode = Get-Command opencode -ErrorAction SilentlyContinue
+  if (-not $opencode) {
+    Write-Warning "opencode not on PATH — skipping service env registration."
+    return $true
+  }
+
+  $registered = 0
+  foreach ($line in Get-Content $secretsPath) {
+    if ($line -notmatch '^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.+)$') { continue }
+    $key = $Matches[1]
+    $value = $Matches[2].Trim()
+    if (-not $value) { continue }
+    & opencode service set env $key $value 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) { $registered++ } else { Write-Warning "  could not register $key in service config" }
+  }
+  Write-Step "Registered $registered key(s) in opencode service env (service.json)."
   return $true
 }
 

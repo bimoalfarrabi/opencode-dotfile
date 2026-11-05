@@ -115,7 +115,25 @@ secrets() {
     warn "Then re-run: $0"
     return 1
   fi
-  log "secrets.env present. Source it before running opencode, or add to your shell profile:"
+
+  # opencode serve / the background service does not inherit your shell env, so
+  # {env:VAR} placeholders only resolve for keys registered in service config.
+  # Push every non-empty key from secrets.env into `opencode service set env`.
+  if command -v opencode >/dev/null 2>&1; then
+    local key value registered=0
+    while IFS='=' read -r key value; do
+      case "$key" in ''|\#*) continue;; esac
+      [ -n "$value" ] || continue
+      opencode service set env "$key" "$value" >/dev/null 2>&1 \
+        && registered=$((registered + 1)) \
+        || warn "  could not register $key in service config"
+    done < <(grep -E '^[A-Z_][A-Z0-9_]*=' "$REPO/secrets.env")
+    log "Registered $registered key(s) in opencode service env (service.json, mode 600)."
+  else
+    warn "opencode not on PATH — skipping service env registration."
+  fi
+
+  log "secrets.env present. Also usable by sourcing it, or adding to your shell profile:"
   log "  echo 'source $REPO/secrets.env' >> ~/.bashrc"
 }
 

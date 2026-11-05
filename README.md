@@ -48,7 +48,9 @@ opencode-dotfiles/
 - Direktori konfigurasi OpenCode adalah **path logis yang sama** di kedua OS:
   Linux `~/.config/opencode/`, Windows `%USERPROFILE%\.config\opencode\`.
 - `opencode.json.template` menyimpan **tanpa path absolut dan tanpa secret**:
-  - `{{OPEN_DESIGN_DIR}}`, `{{AGENTS_SKILLS}}`, `{{HEADROOM_BIN}}` adalah token path.
+  - `{{OPEN_DESIGN_DIR}}`, `{{AGENTS_SKILLS}}`, `{{HEADROOM_BIN}}`,
+    `{{REA_GHIDRA_DIR}}`, `{{REA_JAVA_HOME}}`, `{{WEB_SEARCH_MCP_DIR}}` adalah
+    token path — diganti saat render, bisa di-override lewat env var bernama sama.
   - Semua API key berupa placeholder `{env:VAR}` yang di-resolve OpenCode saat runtime.
 - `scripts/render-config.mjs` mengganti token dengan path asli sesuai OS saat ini
   lalu menulis `opencode.json` final ke direktori config.
@@ -76,22 +78,48 @@ ke `~/.cache/opencode/node_modules/`.
 |-----|------|--------|--------|
 | **open-design** | local | aktif | Daemon Open Design (`apps/daemon/dist/cli.js`); menyajikan artifact/project design. Butuh daemon dapat dijangkau di `http://127.0.0.1:34215`. |
 | **needmcp** | remote | aktif | Toko komponen/desain UI (`https://needmcp.com/mcp`), memakai key `{env:NEEDMCP_API_KEY}`. |
+| **21st** | remote | aktif | Registry komponen React/Tailwind (`https://21st.dev/api/mcp`) — `search`, `get_component`, `get_theme`, bookmarks. Key `{env:TWENTYFIRST_API_KEY}`, dikirim sebagai header `x-api-key`. |
 | **codegraph** | local | aktif | Grafik pengetahuan kode (`codegraph serve --mcp`) — query simbol/arsitektur. |
+| **lerd** | local | aktif | Lingkungan PHP lokal Podman (`lerd mcp`) — site, service, db, worker, log, profil request. Butuh `lerd` ter-install. |
+| **rea** | local | aktif | Reverse engineering (`npx -y rea-agents@6.4.0 mcp`) — binary, Electron, browser, firmware. `GHIDRA_INSTALL_DIR`/`JAVA_HOME` via token `{{REA_GHIDRA_DIR}}`/`{{REA_JAVA_HOME}}`; kosong = tool Ghidra mati, sisanya tetap jalan. |
+| **web-search** | local | aktif | Search web lokal (`{{WEB_SEARCH_MCP_DIR}}/dist/index.js`) — checkout `mcp-servers/web-search-mcp`, harus di-build dulu. |
 | **headroom** | local | nonaktif | Dimatikan; path binary via `{{HEADROOM_BIN}}`. |
 
-### Providers model (`config/opencode.json.template.provider`)
+### Providers model (`config/opencode.json.template`)
+
+OpenCode v2 punya **dua** blok provider, dan keduanya berbeda bentuk:
+
+| Blok | Bentuk | Dipakai untuk |
+|------|--------|---------------|
+| `provider` | v1, **deprecated** di v2 — `npm` + `options.apiKey`/`baseURL` | Provider lama yang belum dimigrasi (masih dimuat) |
+| `providers` | v2 — `package` + `settings` + `models[]` dengan `capabilities` | Bentuk yang benar untuk provider baru, dan satu-satunya yang menerima effort ladder |
+
+`9router` ada di `providers` (v2) karena butuh `capabilities.reasoning.effort`
+per model — lihat `scripts/fix-9router-variants.mjs`.
+
+Menjalankan script itu (butuh proxy hidup + key terbaca; ia membaca `{env:}` dari
+environment, jadi `source secrets.env` dulu):
+
+```bash
+source secrets.env
+node scripts/fix-9router-variants.mjs --dry-run   # lihat yang akan berubah
+node scripts/fix-9router-variants.mjs             # tulis + backup bertimestamp
+```
+
+Kalau proxy tidak terjangkau, script memperingatkan dan memakai capability yang
+sudah ada di config — bukan menebak.
 
 Semua OpenAI-compatible. Sebagian besar adalah router/aggregator (banyak model lewat satu baseURL):
 
-| Provider | baseURL | Key | Catatan |
-|----------|---------|-----|---------|
-| **openagentic** | `openagentic.id/api/v1` | `{env:OPENAGENTIC_API_KEY}` | ±30 model Claude/GPT/Gemini/GLM/Qwen/Kimi/MiniMax/dll |
-| **9router** | `http://127.0.0.1:20128/v1` | `{env:NINEROUTER_API_KEY}` | **Proxy lokal** — model default DeepSeek V4 Flash dll. Harus berjalan di mesin. |
-| **commandcode** | `api.commandcode.ai/provider/v1` | — | DeepSeek, Kimi, GLM, MiniMax, MiMo, Qwen, Tencent |
-| **srbyte** | `router.srbyte.dev/v1` | `{env:SRBYTE_API_KEY}` | Claude, DeepSeek, GLM, Qwen + QD/qmodel+ |
-| **moyra-server-3** | `api.moyra.my.id/v1` | `{env:MOYRA_API_KEY}` | GPT 5.6, Grok, Claude Opus |
-| **yogathedev** | `ai.yogathedev.com/v1` | `{env:YOGATHEDEV_API_KEY}` | GPT 5.6 Terra/Sol/Luna, Claude |
-| **agentrouter** | `agentrouter.org/v1` | — | Claude Opus 4.8 |
+| Provider | blok | baseURL | Key | Catatan |
+|----------|------|---------|-----|---------|
+| **9router** | `providers` | `http://127.0.0.1:20128/v1` | `{env:NINEROUTER_API_KEY}` | **Proxy lokal** — model default DeepSeek V4 Flash dll. Harus berjalan di mesin. 37 model dikurasi + effort `low,medium,high,max`. |
+| **openagentic** | `provider` | `openagentic.id/api/v1` | `{env:OPENAGENTIC_API_KEY}` | ±30 model Claude/GPT/Gemini/GLM/Qwen/Kimi/MiniMax/dll |
+| **commandcode** | `provider` | `api.commandcode.ai/provider/v1` | — | DeepSeek, Kimi, GLM, MiniMax, MiMo, Qwen, Tencent |
+| **srbyte** | `provider` | `router.srbyte.dev/v1` | `{env:SRBYTE_API_KEY}` | Claude, DeepSeek, GLM, Qwen + QD/qmodel+ |
+| **moyra-server-3** | `provider` | `api.moyra.my.id/v1` | `{env:MOYRA_API_KEY}` | GPT 5.6, Grok, Claude Opus |
+| **yogathedev** | `provider` | `ai.yogathedev.com/v1` | `{env:YOGATHEDEV_API_KEY}` | GPT 5.6 Terra/Sol/Luna, Claude |
+| **agentrouter** | `provider` | `agentrouter.org/v1` | — | Claude Opus 4.8 |
 | **zyloo** | `api.zyloo.io/v1` | — | Claude Sonnet 4.6 |
 | **evomap** | `api.evomap.ai/v1` | — | DeepSeek V4 Flash, Claude Opus |
 | **atomesus** | `api.atomesus.com/v1` | — | Cipher |
@@ -194,6 +222,21 @@ Di Windows, set variabel yang sama sebagai User environment variables, atau
 jalankan opencode dengan variabel tersebut dalam lingkupnya. OpenCode meresolve
 `{env:VAR}` dari variabel-variabel ini.
 
+> **Penting (OpenCode v2):** `{env:VAR}` tidak dibaca dari config saja — ia
+> di-resolve di proses server. Kalau kamu menjalankan `opencode serve` sebagai
+> background service, variabel yang di-`source` di shell **tidak** ikut. Daftarkan
+> permanen lewat service config:
+>
+> ```bash
+> opencode service set env TWENTYFIRST_API_KEY "21st_sk_..."
+> opencode service set env NEEDMCP_API_KEY "sk-need-..."
+> opencode service get          # verifikasi
+> ```
+>
+> Nilainya tersimpan di `~/.config/opencode/service.json` (mode 600). Variabel yang
+> hanya di-export di shell tetap dipakai kalau kamu menjalankan `opencode` dengan
+> `--standalone`.
+
 ## Kustomisasi Lerd Desktop (WSLg)
 
 Modul `lerd/` berisi setup dark mode + title bar untuk Lerd Desktop (Flatpak
@@ -251,7 +294,7 @@ Council seats: alpha `kenari/glm-5-2`, beta `kenari/kimi-k2-7-code`,
 gamma `kenari/gpt-5-6-luna`, delta `kenari/deepseek-v4-flash`.
 
 **Cara ganti model**: edit `presets."opencode-go".<role>.model` di
-`config/oh-my-opencode-slim.json` (model id harus terdaftar di `provider.9router` /
+`config/oh-my-opencode-slim.json` (model id harus terdaftar di `providers.9router` /
 `provider.openai` pada `config/opencode.json.template`), sinkronkan ke live
 (`cp config/oh-my-opencode-slim.json ~/.config/opencode/`), lalu **restart OpenCode**.
 Ganti seluruh preset: ubah `"preset": "openai"`. Override sementara:
@@ -264,8 +307,11 @@ Yang berikut ini **tidak tercakup** oleh repo — ia layanan/binary per-host:
 
 | Item | Tujuan | Sumber |
 |------|--------|--------|
-| **Proxy lokal 9router** | `provider.9router.baseURL` = `http://127.0.0.1:20128/v1` — router model default (DeepSeek V4 Flash dll). Berjalan **di mesin**, bukan di config. Windows perlu proxy ini berjalan di port 20128, jika tidak agent/model default tidak akan tersambung. | Instalasi 9router lokal |
+| **Proxy lokal 9router** | `providers.9router.settings.baseURL` = `http://127.0.0.1:20128/v1` — router model default (DeepSeek V4 Flash dll). Berjalan **di mesin**, bukan di config. Windows perlu proxy ini berjalan di port 20128, jika tidak agent/model default tidak akan tersambung. | Instalasi 9router lokal |
 | **codegraph** | MCP server `codegraph serve --mcp` | lihat https://codegraph.dev — install di Windows |
+| **lerd** | MCP server `lerd mcp` | https://lerd.dev — PHP/Podman dev env; site harus ter-link |
+| **rea** | MCP server `npx -y rea-agents@6.4.0 mcp` | Node/npx wajib ada. Ghidra opsional: set `REA_GHIDRA_DIR` + `REA_JAVA_HOME` saat render (mis. `~/tools/ghidra_*/`, `~/.jdks/temurin-21`) |
+| **web-search** | MCP server `node .../web-search-mcp/dist/index.js` | checkout lokal; set `WEB_SEARCH_MCP_DIR`, lalu `npm install && npm run build` di dalamnya |
 | **headroom** | MCP server (nonaktif secara default) | `~/.local/bin/headroom`; `{{HEADROOM_BIN}}` |
 | **daemon open-design** | MCP server `node .../apps/daemon/dist/cli.js mcp` | di-clone + di-build oleh setup; daemon harus dapat dijangkau di `http://127.0.0.1:34215` |
 | **phpactor (WSL)** | LSP PHP untuk Zed remote di WSL — dijalankan via container lerd (home composer terpisah `~/.lerd-phpactor` + shim `~/.local/share/lerd/bin/phpactor`) | `lerd/phpactor-wsl.md` |
@@ -277,7 +323,7 @@ package.json), jadi **cross-platform** — bisa di-install di Windows lewat
 `npm i -g 9router`. Yang perlu diperhatikan bukan OS-nya, melainkan **di mana
 `127.0.0.1:20128` itu mengarah**.
 
-Config memakai `provider.9router.baseURL = http://127.0.0.1:20128/v1`. Masalahnya:
+Config memakai `providers.9router.settings.baseURL = http://127.0.0.1:20128/v1`. Masalahnya:
 - Di Linux native → 9router dan OpenCode satu loopback, `127.0.0.1` pasti kena. ✅
 - Di Windows, **WSL2 memakai NAT**: `127.0.0.1` di dalam WSL adalah loopback WSL
   sendiri, **bukan** loopback Windows. Jadi posisi 9router menentukan.
