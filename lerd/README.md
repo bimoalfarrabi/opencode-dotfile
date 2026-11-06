@@ -82,8 +82,11 @@ Ketiganya bisa hidup bersama. Flatpak tidak jalan otomatis; buka dengan
 |---|----------|--------|------|
 | 1 | `.wslconfig` | `C:\Users\<user>\.wslconfig` | `[general] instanceIdleTimeout=-1` + `[experimental] hostAddressLoopback=true`. **Tanpa `instanceIdleTimeout=-1` distro dimatikan beberapa detik setelah terminal terakhir ditutup dan semua site ikut mati.** Backup otomatis dibuat. |
 | 2 | `lerd.exe` | `~/.local/bin/lerd.exe` | Sisi Windows: path shim + agent login. **Dibundel di dalam tarball Linux**, tidak ada aset rilis terpisah. |
-| 3 | `lerd node:manage` | `~/.config/lerd/config.yaml` | `node.managed: true`, default 22 — supaya build di shell memakai Node yang sama dengan worker. |
+| 3 | `lerd node:manage` | `~/.config/lerd/config.yaml` | `node.managed: true`, default 22 — supaya build di shell memakai Node yang sama dengan worker. **Ikut menulis shim `node`/`npm`/`npx` ke `~/.local/share/lerd/bin`, yang membelokkan `npm i -g` ke prefix lerd.** |
 | 4 | `lerd wsl:setup` | `%LOCALAPPDATA%\lerd\bin` | 19 shim (`lerd.exe`, `php.exe`, `node.exe`, …), `lerd-wsl.conf`, NRPT rule `.test`, firewall Hyper-V `lerd-lan`, agent. |
+
+Langkah 3 bisa dilewati dengan `./setup-wsl2.sh --no-node`; konsekuensinya
+dibahas di [Node yang dimanage lerd vs CLI global dari nvm](#node-yang-dimanage-lerd-vs-cli-global-dari-nvm).
 
 `wsl:setup` idempoten dan **tidak** membuat backup `.wslconfig` / `/etc/wsl.conf`
 / `containers.conf` — file ditulis truncating. Karena itu `setup-wsl2.sh`
@@ -222,6 +225,116 @@ Ini juga penting karena shim `lerd.exe` di Windows memanggil CLI lewat
 
 ---
 
+## Node yang dimanage lerd vs CLI global dari nvm
+
+`lerd node:manage` menaruh shim `node`, `npm`, dan `npx` di
+`~/.local/share/lerd/bin`, lalu blok PATH di `.zshrc` menaikkannya di atas nvm.
+Shim `npm` itu bukan npm biasa — ia memanggil `lerd npm`, yang menetapkan
+`npm_config_prefix=$HOME/.local/share/lerd/node-global`.
+
+Akibatnya `npm i -g <paket>` punya dua tujuan berbeda, tergantung shim mana yang
+menang saat perintah itu dijalankan:
+
+| Perintah dijalankan dengan | Prefix tujuan | `which <cli>` sesudahnya |
+|---|---|---|
+| Shim lerd menang (`node.managed: true`) | `~/.local/share/lerd/node-global` | `~/.local/share/lerd/bin/<cli>` |
+| nvm menang (lerd unmanage, atau shell tanpa blok PATH lerd) | `~/.nvm/versions/node/<ver>` | `~/.nvm/versions/node/<ver>/bin/<cli>` |
+
+Dua salinan itu tidak saling mengetahui. CLI yang dipanggil dari terminal
+mengikuti shim yang menang, bukan salinan yang terakhir di-upgrade.
+
+### Gejala: versi terlihat "turun sendiri"
+
+Paket yang di-upgrade saat shim lerd menang masuk ke prefix lerd. Begitu shell
+baru memuat PATH, atau lerd menulis ulang shim-nya, `which` bisa berpindah ke
+salinan lain yang umurnya berbulan-bulan. Yang berubah bukan versi paketnya —
+yang berubah prefix yang ditunjuk.
+
+Cek kedua salinan sebelum menyimpulkan ada rollback:
+
+```sh
+which -a 9router
+npm root -g
+node -p "require('$HOME/.local/share/lerd/node-global/lib/node_modules/9router/package.json').version" 2>/dev/null
+for d in ~/.nvm/versions/node/*/lib/node_modules/9router; do node -p "require('$d/package.json').version"; done
+```
+
+### Gejala: `zsh: killed` saat CLI dijalankan
+
+Bukan zsh yang membunuh, dan bukan OOM. Launcher 9router memanggil
+`killAllAppProcesses` setiap start: `kill -9` untuk setiap proses node yang
+cmdline-nya berisi `9router` dengan `cli.js`/`/9router`, ditambah apa pun yang
+cmdline-nya mengandung `next-server`. Jadi menyalakan instance kedua selalu
+mematikan instance pertama, termasuk yang sedang dipakai. Perintah shell yang
+kebetulan menyebut `next-server` (mis. `grep next-server`) ikut kena. `tmux`
+sendiri tidak membunuh apa pun — yang membunuh adalah instance baru di dalamnya.
+
+Cek apakah ada dua instance:
+
+```sh
+ps -eo pid,ppid,pgid,tty,stat,cmd | grep -E '9router|next-server' | grep -v grep
+```
+
+### Gejala: `Error: EIO error` saat tombol panah ditekan
+
+Menu TUI membaca stdin mentah. `read()` dari controlling terminal hanya sah
+untuk foreground process group; kalau prosesnya berada di process group lain
+yang sudah orphan, kernel mengembalikan `EIO` dan `cli.js` mencetaknya sebagai
+`Error: EIO error`.
+
+Bandingkan `PGID` dengan `TPGID`. Keduanya harus sama:
+
+```sh
+ps -o pid,pgid,tpgid,tty,stat,cmd -p $(pgrep -f 'bin/9router$')
+```
+
+`Sl+` berarti foreground. `Sl` tanpa `+` dengan `TPGID` berbeda berarti proses
+itu tidak boleh membaca terminal, dan panah akan gagal. Pemicunya: dijalankan
+sebagai job background (`&`), lewat `nohup`, atau lewat wrapper yang keluar
+sebelum 9router selesai (`zsh -c '9router'`, subshell).
+
+Jalankan di foreground:
+
+```sh
+9router
+```
+
+Untuk background tanpa TUI, pakai mode tray yang tidak membaca stdin:
+
+```sh
+nohup 9router --tray --skip-update >/tmp/9router.log 2>&1 &
+```
+
+### Memilih satu pemilik
+
+Supaya hanya ada satu salinan yang dipakai, pilih salah satu:
+
+**lerd yang memiliki Node** — semua `npm i -g` masuk prefix lerd, konsisten
+dengan worker:
+
+```sh
+lerd node:manage
+9router --version
+```
+
+**nvm yang memiliki Node** — shim dan versi fnm milik lerd dilepas; `npm i -g`
+kembali ke nvm:
+
+```sh
+lerd node:unmanage
+hash -r
+which 9router
+```
+
+`node:unmanage` mengubah `node.managed` menjadi `false` dan menghapus
+`node`/`npm`/`npx` dari `~/.local/share/lerd/bin`, jadi worker lerd yang butuh
+Node harus memakai Node sistem atau bun. Direktori prefix
+`~/.local/share/lerd/node-global` tidak ikut dihapus; isinya tetap ada dan tetap
+dipakai lagi kalau `node:manage` dijalankan ulang, jadi upgrade yang sudah
+dilakukan di sana tidak hilang.
+
+---
+
 ## Browser di WSL
 
 `~/.local/bin/lerd-browser` meneruskan URL ke Brave Origin (Linux/WSLg), dengan
@@ -302,8 +415,8 @@ systemctl --user restart lerd-ui
 
 ```sh
 bash -lc 'lerd doctor'                 # harus: All checks passed.
-bash -lc 'node -v; php -v | head -1'   # 22.x, 8.5.x (shim lerd)
-zsh  -ic 'node -v'                     # 22.x
+bash -lc 'node -v; php -v | head -1'   # 22.x, 8.5.x (shim lerd; 22.x hanya bila node:manage aktif)
+zsh  -ic 'node -v'                     # 22.x dengan node:manage, versi nvm bila unmanage
 curl -sS -o /dev/null -w '%{http_code}\n' https://titit.test   # 302/200
 ```
 

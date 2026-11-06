@@ -186,6 +186,8 @@ export NVM_DIR="$HOME/.nvm"
 # Shim lerd (node, php, composer, mysql, …) harus menang atas nvm, dan hanya
 # boleh muncul SEKALI di $PATH. Buang duplikat lama lalu prepend; diletakkan
 # setelah nvm di-source supaya nvm tidak menimpanya di login bersih.
+# Konsekuensi: `npm i -g` lewat shim ini menulis ke node-global milik lerd,
+# bukan ke prefix nvm — lihat lerd/README.md#node-yang-dimanage-lerd-vs-cli-global-dari-nvm.
 PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -v '\.local/share/lerd/bin' | paste -sd:)"
 export PATH="/home/viasco/.local/share/lerd/bin:$PATH"
 

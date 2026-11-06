@@ -371,10 +371,20 @@ Pilihan kerja:
   npm i -g 9router
   node "$(npm root -g)/9router/cli.js" --skip-update
   ```
+  Di mesin yang memakai `lerd node:manage`, `npm i -g` menulis ke prefix lerd,
+  bukan ke nvm. Cek `which -a 9router` bila versi terlihat berbeda dari yang
+  baru di-upgrade — penjelasan lengkap ada di
+  `lerd/README.md#node-yang-dimanage-lerd-vs-cli-global-dari-nvm`.
 - **Skenario A** — OpenCode native Windows + 9router native Windows; tidak perlu
   mengubah apa pun pada config, hanya pastikan 9router berjalan sebelum membuka opencode.
 - **Skenario B** — kurang ideal: harus mengganti `baseURL` di template ke IP host
   Windows, yang melanggar prinsip "satu config untuk semua OS".
+
+Catatan menjalankan 9router di WSL: launcher-nya memanggil `killAllAppProcesses`
+setiap start, jadi instance baru akan `kill -9` instance lama. TUI-nya juga
+membaca stdin mentah, jadi harus berjalan di foreground process group — kalau
+tidak, tombol panah gagal dengan `Error: EIO error`. Kedua gejala itu sudah
+dirangkum di `lerd/README.md#node-yang-dimanage-lerd-vs-cli-global-dari-nvm`.
 
 Hal yang tetap perlu diurus per-mesin (di luar repo):
 - **Lisensi/auth 9router** terikat `machine-id` (`~/.9router/machine-id`, `jwt-secret`,
