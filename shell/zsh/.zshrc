@@ -135,25 +135,18 @@ precmd_functions+=(prompt_powershell)
 export PATH="/home/viasco/.local/bin:$PATH"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-export PATH="/home/viasco/.local/share/lerd/bin:$PATH"
+# Catatan: PATH shim lerd dipasang di bagian bawah, SETELAH nvm di-source.
 
-# ---- Lerd (Electron/flatpak) ----
-# Dark mode (konten + title bar) ditangani oleh patch di dalam app,
-# lihat ~/.local/bin/lerd-dark-titlebar.sh (re-apply setelah update Lerd).
-#
-# Wrapper pintar: TANPA argumen = buka Desktop app (GUI); DENGAN argumen =
-# terusan ke CLI asli (~/.local/bin/lerd — update, start, dashboard, dll).
-# Tanpa ini `lerd update` dkk. malah membuka GUI karena fungsi menutupi binary.
-lerd() {
-  if [ $# -eq 0 ]; then
-    flatpak run sh.lerd.Desktop
-  else
-    "$HOME/.local/bin/lerd" "$@"
-  fi
-}
+# ---- Lerd ----
+# Desktop app sekarang jalur Windows (lerd.exe + tray di sana), bukan Flatpak.
+# Buka GUI Flatpak (cadangan) lewat: lerd-dashboard
+# CLI tetap binary asli di ~/.local/bin/lerd — JANGAN dibungkus fungsi:
+# shim lerd.exe di Windows memanggil CLI ini lewat wsl.exe, dan fungsi shell
+# membuat `lerd update` dkk. rawan membuka GUI.
+alias lerd-dashboard='flatpak run sh.lerd.Desktop'
 
-# Perbaiki split-DNS Lerd di WSL (tulis ulang Global DNS + routing *.test)
-alias lerd-dns='~/bin/lerd-dns-fix.sh'
+# Split-DNS fix TIDAK lagi dipasang sebagai alias — jalankan langsung supaya
+# jelas apa yang dieksekusi: ./lerd/dns/lerd-dns-fix.sh
 
 # ---- Utilitas umum ----
 export EDITOR="nano"
@@ -188,6 +181,13 @@ autoload -Uz compinit && compinit
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# ---- Lerd shim (HARUS setelah nvm) ----
+# Shim lerd (node, php, composer, mysql, …) harus menang atas nvm, dan hanya
+# boleh muncul SEKALI di $PATH. Buang duplikat lama lalu prepend; diletakkan
+# setelah nvm di-source supaya nvm tidak menimpanya di login bersih.
+PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -v '\.local/share/lerd/bin' | paste -sd:)"
+export PATH="/home/viasco/.local/share/lerd/bin:$PATH"
 
 # ---- Discord IPC bridge (WSL -> Windows) ----
 # Jaga bridge npiperelay/socat tetap hidup: mulai sekali kalau belum jalan.

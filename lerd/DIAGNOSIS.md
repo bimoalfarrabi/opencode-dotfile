@@ -2,6 +2,16 @@
 
 Catatan untuk lingkungan WSLg (Windows + WSL). Terakhir diverifikasi: 2026-08-21.
 
+> **Historis — Flatpak sekarang jalur cadangan.** Sejak 2026-11-06 GUI utama
+> adalah **desktop app Windows** (tray + notifikasi toast), dan integrasi
+> Windows memakai `lerd.exe` + `lerd wsl:setup`. Dokumen ini tetap berguna
+> kalau kamu memilih GUI Flatpak di WSLg: patch dark title bar masih berlaku,
+> dan catatan ikon taskbar WSLg masih akurat.
+>
+> Untuk setup utama lihat `README.md`. Untuk trust sertifikat di browser lihat
+> `nss-ca-trust.md` — nickname-nya sekarang `mkcert development CA <serial>`,
+> bukan `Lerd mkcert (viasco)`.
+
 ## Masalah
 
 Title bar Lerd Desktop (aplikasi Electron, Flatpak `sh.lerd.Desktop`) selalu terang,

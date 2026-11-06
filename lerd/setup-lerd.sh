@@ -103,39 +103,30 @@ install_wslgconfig() {
 install_zshrc() {
   local rc="$HOME_DIR/.zshrc"
   [ -f "$rc" ] || return 0
-  if grep -q '^lerd()' "$rc"; then
-    log "Fungsi \`lerd\` sudah ada di .zshrc."
+  # Fungsi `lerd()` sengaja TIDAK dipasang: ia menutupi binary CLI dan membuat
+  # `lerd update` dkk. rawan membuka GUI. Shim lerd.exe di Windows juga
+  # memanggil CLI lewat wsl.exe, jadi fungsi shell tidak akan terpakai.
+  if grep -q '^alias lerd-dashboard=' "$rc"; then
+    log "alias \`lerd-dashboard\` sudah ada di .zshrc."
   else
-    log "Menambahkan fungsi \`lerd\` ke .zshrc ..."
+    log "Menambahkan alias \`lerd-dashboard\` ke .zshrc ..."
     cat >> "$rc" <<'EOF'
 
-# ---- Lerd Desktop (dark mode ditangani patch; lihat opencode-dotfile/lerd) ----
-# TANPA argumen = buka GUI; DENGAN argumen = CLI asli (lerd update, start, ...).
-# (Fungsi menutupi binary ~/.local/bin/lerd — jangan sampai menghalangi CLI.)
-lerd() {
-  if [ $# -eq 0 ]; then
-    flatpak run sh.lerd.Desktop
-  else
-    "$HOME/.local/bin/lerd" "$@"
-  fi
-}
+# ---- Lerd ----
+# GUI Flatpak (cadangan). CLI tetap binary asli di ~/.local/bin/lerd —
+# jangan dibungkus fungsi: shim lerd.exe memanggilnya lewat wsl.exe.
+alias lerd-dashboard='flatpak run sh.lerd.Desktop'
 EOF
   fi
 }
 
 # --- 6. split-DNS fix ----------------------------------------------------------
 install_dns() {
-  log "Memasang lerd-dns-fix.sh + alias \`lerd-dns\` ..."
+  log "Memasang lerd-dns-fix.sh (tanpa alias — jalankan langsung) ..."
   mkdir -p "$HOME_DIR/bin"
   cp "$LERD/dns/lerd-dns-fix.sh" "$HOME_DIR/bin/lerd-dns-fix.sh"
   chmod +x "$HOME_DIR/bin/lerd-dns-fix.sh"
-  local rc="$HOME_DIR/.zshrc"
-  if [ -f "$rc" ] && ! grep -q '^alias lerd-dns=' "$rc"; then
-    printf '\n# ---- Lerd split-DNS fix (jalankan setelah lerd dns:repair / install / restart WSL) ----\nalias lerd-dns='"'"'~/bin/lerd-dns-fix.sh'"'"'\n' >> "$rc"
-    log "  alias \`lerd-dns\` ditambahkan ke .zshrc"
-  else
-    log "  alias \`lerd-dns\` sudah ada."
-  fi
+  log "  ~/bin/lerd-dns-fix.sh terpasang; jalankan bila resolusi internet WSL bermasalah."
 }
 
 # --- run ---------------------------------------------------------------------

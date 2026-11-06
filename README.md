@@ -28,7 +28,7 @@ opencode-dotfiles/
 │   └── skills/                 # 69 skill (termasuk superpowers yang di-vendor)
 ├── agents-skills/              # → ~/.agents/skills/   (75 skill)
 ├── claude-skills/              # → ~/.claude/skills/   (11 skill)
-├── lerd/                       # kustomisasi Lerd Desktop WSLg — setup-lerd.sh (lihat lerd/README.md)
+├── lerd/                       # Lerd di WSL2 — setup-wsl2.sh, setup-desktop-app.sh (lihat lerd/README.md)
 │   └── phpactor-wsl.md         # LSP phpactor di WSL via container lerd (Zed remote)
 ├── shell/                      # kustomisasi shell: zsh WSL (setup-zsh.sh) + PowerShell profile + tema oh-my-posh
 ├── docs/
@@ -193,8 +193,13 @@ cd ~/Koding/opencode-dotfiles
 ./setup-linux.sh            # prereqs + tautkan asset + render + clone/build open-design + secrets
 ./setup-linux.sh --prereqs  # hanya install/verifikasi prasyarat
 
-# (opsional, khusus WSLg) kustomisasi Lerd Desktop — dark title bar + ikon + override:
-./lerd/setup-lerd.sh        # detail: bagian "Kustomisasi Lerd Desktop (WSLg)" di bawah
+# Lerd di WSL2 — integrasi Windows + tray/toast (jalur utama):
+./lerd/setup-wsl2.sh
+wsl --shutdown              # dari PowerShell, sekali
+./lerd/setup-desktop-app.sh
+
+# (opsional, cadangan) GUI Flatpak WSLg — dark title bar + ikon + override:
+./lerd/setup-lerd.sh        # detail: bagian "Lerd di WSL2" di bawah
 ```
 
 ### Windows (native)
@@ -237,21 +242,44 @@ jalankan opencode dengan variabel tersebut dalam lingkupnya. OpenCode meresolve
 > hanya di-export di shell tetap dipakai kalau kamu menjalankan `opencode` dengan
 > `--standalone`.
 
-## Kustomisasi Lerd Desktop (WSLg)
+## Lerd di WSL2
 
-Modul `lerd/` berisi setup dark mode + title bar untuk Lerd Desktop (Flatpak
-Electron, environment PHP lokal) di WSLg — idempotent dan mudah direplikasi:
+Modul `lerd/` menyimpan seluruh setup Lerd — integrasi Windows, tray + toast,
+shell/PATH, trust HTTPS, dan DNS. Idempotent dan mudah direplikasi ke mesin baru.
+
+**Jalur utama (Windows-native):**
 
 ```sh
-./lerd/setup-lerd.sh     # patch app + desktop entry + ikon + flatpak override + .wslgconfig + fungsi `lerd`
+./lerd/setup-wsl2.sh          # .wslconfig + lerd.exe + node:manage + wsl:setup
+wsl --shutdown                # dari PowerShell, sekali
+./lerd/setup-desktop-app.sh   # tray + notifikasi toast Windows
+```
+
+**Yang didapat:** `lerd`/`php`/`node`/`composer` bisa dipanggil dari Windows
+Terminal, `*.test` resolve di browser Windows lewat NRPT, HTTPS dipercaya, dan
+tray icon + toast muncul sebagai notifikasi Windows.
+
+> **Jangan pakai `Install-Lerd.exe`.** Installer itu hardcode distro
+> `Ubuntu-24.04`; kalau distro-mu bernama lain ia membuat distro **kedua** dan
+> membajak integrasi Windows. Jalur yang benar untuk distro yang sudah ada
+> adalah `lerd.exe` + `lerd wsl:setup` — persis dua langkah terakhir yang
+> installer itu sendiri jalankan.
+
+**Opsi cadangan (Flatpak WSLg):** GUI Electron di dalam WSL, dengan patch dark
+title bar. Tidak jalan otomatis; buka lewat `lerd-dashboard`.
+
+```sh
+./lerd/setup-lerd.sh     # patch app + desktop entry + ikon + flatpak override + .wslgconfig
 ```
 
 - Setelah `flatpak update` Lerd, jalankan ulang `./lerd/apply-patch.sh` (patch berada di
   dalam file flatpak, ikut terhapus oleh update).
 - Restart WSL sekali setelah setup pertama: `wsl --shutdown` di PowerShell Windows.
 - Batasan: ikon taskbar window tetap penguin di WSLg 1.0.73 (bug microsoft/wslg#1382);
-  semua infrastruktur sudah disiapkan sehingga ikon muncul otomatis bila WSLg diperbaiki.
-- Detail lengkap + revert: `lerd/README.md`.
+
+**Dokumentasi:** `lerd/README.md` (setup lengkap + revert),
+`lerd/nss-ca-trust.md` (trust sertifikat di browser — nickname mkcert),
+`lerd/DIAGNOSIS.md` (catatan debug historis Flatpak/WSLg).
 
 ## Kustomisasi Windows Terminal
 

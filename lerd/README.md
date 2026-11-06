@@ -1,224 +1,362 @@
-# Lerd Desktop — kustomisasi (WSLg)
+# Lerd di WSL2 — setup lengkap
 
-Setup dark mode + title bar untuk **Lerd Desktop** (aplikasi Electron, Flatpak
-`sh.lerd.Desktop`, lingkungan PHP lokal ala Herd) di WSLg. Dibuat agar mudah
-direplikasi ke mesin baru.
+Modul ini menyimpan seluruh setup Lerd di mesin ini: integrasi Windows
+(`lerd.exe`, `wsl:setup`, tray + toast), shell/PATH, trust HTTPS, DNS, dan
+opsional GUI Flatpak sebagai cadangan.
 
-## Yang dipasang
+**Status terverifikasi:** `lerd doctor` → `All checks passed.`
 
-| # | Komponen | Lokasi target | Efek |
-|---|----------|---------------|------|
-| 1 | Patch app (`apply-patch.sh`) | file di dalam flatpak: `.../files/main/src/main.js`, `src/preload.js`, `package.json` | Title bar Chromium yang terang dihilangkan (`frame: false`) → band title bar gelap 40px sendiri (area drag + tombol **— ▢ ✕**) + dashboard digeser 40px via CSS; konten dipaksa gelap (`nativeTheme.themeSource='dark'`); `desktopName` → `Lerd.desktop` (app_id Wayland cocok dengan key app-list WSLg). Termasuk fix scroll terpotong (lihat "Perbaikan scroll" di bawah). |
-| 2 | Desktop entry | `~/.local/share/applications/Lerd.desktop` | Entry WSLg dengan key `Lerd` (nama file tanpa titik — derivasi key WSLg mengambil segmen setelah titik terakhir, lihat microsoft/wslg#944). |
-| 3 | Ikon | `~/.local/share/icons/hicolor/{16..512}x*/apps/Lerd.png` + svg | `Icon=` di desktop entry memakai **absolute path** (direktori ikon user tidak ada di daftar pencarian WSLg). |
-| 4 | Flatpak override | `flatpak override --user --env=XDG_SESSION_TYPE=wayland` | **WAJIB** di WSLg: tanpa ini launcher `--ozone-platform-hint=auto` jatuh ke X11 dan crash (`Missing X server`). |
-| 5 | `.wslgconfig` (Windows) | `C:\Users\<user>\.wslgconfig` | `WSL2_VM_ID` (fix microsoft/wslg#1388 — env dihapus sejak WSL 2.6.2, weston butuh untuk `is_system_distro()`) + `WESTON_RDPRAIL_SHELL_APP_LIST_PATH` (folder scan desktop file tambahan; default WSLg hanya `/usr/share/applications` dkk). |
-| 6 | Fungsi `lerd` | `~/.zshrc` | Wrapper pintar: `lerd` (tanpa argumen) membuka Desktop app; `lerd <perintah>` diteruskan ke CLI asli (`~/.local/bin/lerd` — `update`, `start`, `dashboard`, dll). Diperbaiki 2026-08-22: versi lama (`lerd() { flatpak run sh.lerd.Desktop "$@"; }`) menutupi CLI sehingga `lerd update` malah membuka GUI. |
-| 7 | Fix split-DNS (`dns/lerd-dns-fix.sh`) | `~/bin/lerd-dns-fix.sh` + alias `lerd-dns` di `~/.zshrc` | Memulihkan DNS global setelah `lerd dns:repair` / `lerd install` / restart WSL (lihat bagian DNS di bawah). |
+## Urutan setup (mesin baru)
 
-## DNS (split-DNS WSL) — masalah & perbaikan
+Prasyarat: Ubuntu 22.04+ / Debian 12+ di WSL2 dengan **systemd** aktif.
 
-**Masalah**: Lerd memakai dnsmasq di port `5300` (link `lerd0`) untuk domain `*.test`,
-dan menulis `/etc/systemd/resolved.conf.d/lerd.conf`. Saat `lerd dns:repair` (atau
-`lerd install`) berjalan, file itu ditimpa menjadi **hanya** `127.0.0.1:5300` sebagai DNS
-global → semua resolusi internet di WSL gagal (`.test` tetap jalan, internet mati).
+```sh
+git clone git@github.com:bimoalfarrabi/opencode-dotfile.git
+cd opencode-dotfile
+```
 
-**Solusi**: `lerd-dns-fix.sh` menulis ulang konfigurasi yang benar:
+### 1. Lerd di dalam distro
+
+```sh
+curl -fsSL https://lerd.sh/install.sh | bash
+```
+
+Saat installer bertanya soal DNS: pilih **Yes** (`.test` + HTTPS).
+
+> **JANGAN pakai `Install-Lerd.exe`.** Installer itu hardcode
+> `const Distro = 'Ubuntu-24.04'` dan memanggil
+> `wsl --install -d Ubuntu-24.04 --no-launch --web-download` tanpa cabang.
+> Kalau distro-mu bernama lain (mis. `Ubuntu`), ia akan membuat distro **kedua
+> yang kosong**, lalu `wsl:setup` di dalamnya membajak integrasi Windows —
+> `lerd-wsl.conf` menunjuk distro kosong, NRPT rule di-replace, PATH dan Run key
+> ditimpa. Site-mu tertinggal di distro lama dan tak terlihat dari Windows.
+
+### 2. Integrasi Windows
+
+```sh
+./lerd/setup-wsl2.sh          # .wslconfig, lerd.exe, node:manage, wsl:setup
+```
+
+Lalu dari **PowerShell**:
+
+```powershell
+wsl --shutdown
+```
+
+(Satu-satunya langkah yang tidak bisa dilakukan dari dalam distro.)
+
+### 3. Desktop app Windows — tray + notifikasi toast
+
+```sh
+./lerd/setup-desktop-app.sh
+```
+
+### 4. Shell, browser, DNS
+
+```sh
+./shell/setup-zsh.sh          # PATH, BROWSER, environment.d, completions
+./lerd/dns/lerd-dns-fix.sh    # kalau resolusi internet di WSL bermasalah
+```
+
+Trust CA di browser: lihat `nss-ca-trust.md`. Verifikasi dengan
+`bash -lc 'lerd doctor'`.
+
+---
+
+## Tiga jalur yang berbeda — jangan tertukar
+
+| Jalur | Apa | Status di repo ini |
+|---|---|---|
+| **Windows-native** (`lerd.exe` + `wsl:setup`) | CLI `lerd`/`php`/`node` dari Windows, DNS `.test` via NRPT, firewall Hyper-V, agent di HKCU Run | **Utama.** `setup-wsl2.sh` |
+| **Desktop app Windows** | Tray icon + notifikasi toast, agent disupervisi app | **Utama.** `setup-desktop-app.sh` |
+| **Flatpak Linux (WSLg)** | GUI Electron di dalam WSL, dark title bar hasil patch | **Cadangan.** `setup-lerd.sh` |
+
+Ketiganya bisa hidup bersama. Flatpak tidak jalan otomatis; buka dengan
+`lerd-dashboard` kalau perlu.
+
+---
+
+## Yang dipasang `setup-wsl2.sh`
+
+| # | Komponen | Lokasi | Efek |
+|---|----------|--------|------|
+| 1 | `.wslconfig` | `C:\Users\<user>\.wslconfig` | `[general] instanceIdleTimeout=-1` + `[experimental] hostAddressLoopback=true`. **Tanpa `instanceIdleTimeout=-1` distro dimatikan beberapa detik setelah terminal terakhir ditutup dan semua site ikut mati.** Backup otomatis dibuat. |
+| 2 | `lerd.exe` | `~/.local/bin/lerd.exe` | Sisi Windows: path shim + agent login. **Dibundel di dalam tarball Linux**, tidak ada aset rilis terpisah. |
+| 3 | `lerd node:manage` | `~/.config/lerd/config.yaml` | `node.managed: true`, default 22 — supaya build di shell memakai Node yang sama dengan worker. |
+| 4 | `lerd wsl:setup` | `%LOCALAPPDATA%\lerd\bin` | 19 shim (`lerd.exe`, `php.exe`, `node.exe`, …), `lerd-wsl.conf`, NRPT rule `.test`, firewall Hyper-V `lerd-lan`, agent. |
+
+`wsl:setup` idempoten dan **tidak** membuat backup `.wslconfig` / `/etc/wsl.conf`
+/ `containers.conf` — file ditulis truncating. Karena itu `setup-wsl2.sh`
+membuat backup `.wslconfig` sendiri.
+
+### Detail `lerd.exe` yang sering bikin bingung
+
+`lerd update` **seharusnya** memulihkan `lerd.exe` (`companionBinaries()`
+mengembalikan `{"lerd-tray","lerd.exe"}` di WSL), tapi `runUpdate` berhenti
+lebih awal saat sudah versi terbaru, sehingga `replaceCompanion` tidak pernah
+jalan. Selain itu `replaceCompanion` **diam-diam return** kalau file sumber
+tidak ada.
+
+Jadi kalau `wsl:setup` gagal dengan:
+
+```
+✗ Windows integration: lerd.exe is not installed next to /home/…/.local/bin/lerd
+```
+
+ambil manual dari tarball:
+
+```sh
+VER=$(lerd version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+tmp=$(mktemp -d)
+gh release download "v$VER" --repo lerd-env/lerd \
+  -p "lerd_${VER}_linux_amd64.tar.gz" -D "$tmp"
+tar -xzf "$tmp/lerd_${VER}_linux_amd64.tar.gz" -C "$tmp" lerd.exe
+install -m 755 "$tmp/lerd.exe" ~/.local/bin/lerd.exe
+rm -rf "$tmp"
+```
+
+Catatan: `lerd.exe` ada **di dalam tarball Linux** (`.goreleaser.yml`
+membundelnya lewat `files: src: dist/lerd-windows-amd64_…/lerd.exe`). Kalau
+unduhan terputus, `tar -tzf` tetap bisa membaca header dan `lerd.exe` biasanya
+sudah lengkap di depan arsip — ukuran harus `3160064` byte.
+
+---
+
+## Yang dipasang `setup-desktop-app.sh`
+
+Tidak ada installer terpisah untuk desktop app — hanya zip. Script ini
+mereproduksi langkah `lerd.iss` (yang ikut dipaketkan di dalam `app.asar`).
+
+| Key (semua HKCU, tanpa admin) | Nilai | Fungsi |
+|---|---|---|
+| `Software\Classes\AppUserModelId\sh.lerd.Lerd` | `DisplayName=Lerd`, `IconUri=…\lerd.png` | identitas toast |
+| `Software\Classes\lerd` | `URL:Lerd` + `URL Protocol` | skema `lerd://` |
+| `Software\Classes\lerd\DefaultIcon` | `<exe>,0` | ikon |
+| `Software\Classes\lerd\shell\open\command` | `<exe> "%1"` | handler |
+| `…\CurrentVersion\Run\lerd-desktop` | `<exe> --hidden` | autostart tray |
+| `%APPDATA%\…\Start Menu\Programs\Lerd\Lerd.lnk` | — | kosmetik |
+
+Lokasi: `%LOCALAPPDATA%\Lerd\desktop` (bukan `C:\Program Files\Lerd` — tidak
+butuh admin dan tidak bentrok dengan wizard).
+
+**Ikon tidak ada di zip.** `lerd.png` dan `lerd.ico` diekstrak dari dalam
+`resources/app.asar` (`installer/branding/icon-512.png` dan `assets/icon.ico`),
+persis seperti `lerd.iss` memetakan `branding\icon-512.png` → `{app}\lerd.png`.
+Script melakukannya dengan parser asar kecil (Python, tanpa dependensi).
+
+### Handover agent
+
+Setelah registrasi, `lerd wsl:setup` melaporkan:
+
+```
+✓ the Lerd desktop app runs the lerd agent
+```
+
+Run key `lerd` (agent mandiri) **dihapus**, tersisa `lerd-desktop`. Ini
+disengaja: komentar di `src/agent.js` menyebut exe agent unsigned di Run key
+dibaca Defender sebagai malware yang membuat dirinya persisten, dan Defender
+pernah mengarantinanya.
+
+### Cara kerja notifikasi
+
+App membuka `ws://127.0.0.1:7073/api/desktop/ws`. Selama app jalan, lerd-ui
+menyerahkan toast lewat socket itu; app menampilkannya di bawah
+AppUserModelID `sh.lerd.Lerd`. Kalau app tidak jalan, **toast PowerShell
+mengambil alih**.
+
+Karena itu `notifications.target` **tetap `native`**. Bantuan
+`lerd notify target` berbunyi "Native is Linux only for now", tapi di WSL
+maksudnya toast Windows via PowerShell — dan app yang running menimpanya.
+`browser` justru menghilangkan fallback itu.
+
+### Jangan tutup app lewat Task Manager
+
+`Stop-Process -Force` membunuh **agent sebagai child process**, dan DNS `.test`
+mati sampai app dinyalakan lagi. **Quit dari menu tray tidak begitu** —
+`main.js` hanya menyetel flag di `before-quit`, dan `agent.js` menegaskan:
+
+> The agent outlives this app on purpose: quitting the tray must not take DNS
+> for the sites with it.
+
+---
+
+## Shell & PATH
+
+`lerd` memasang shim (`php`, `composer`, `node`, `mysql`, …) di
+`~/.local/share/lerd/bin`. Shim **harus menang** atas nvm/version manager, dan
+hanya boleh muncul **sekali** di `$PATH`.
+
+Pola yang dipakai di `.bashrc`, `.zshrc`, dan `.profile`:
+
+```sh
+# buang duplikat lama, lalu prepend
+PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -v '\.local/share/lerd/bin' | paste -sd:)"
+export PATH="/home/viasco/.local/share/lerd/bin:$PATH"
+```
+
+Posisi penting:
+
+- `.zshrc` — blok ini diletakkan **setelah** nvm di-source, kalau tidak nvm
+  menang di login bersih.
+- `.profile` — **ini yang memperbaiki `bash -lc`**, karena `.bashrc` punya guard
+  interaktif (`case $- in *i*) ;; *) return;; esac`) sehingga login shell
+  non-interaktif tidak pernah sampai baris PATH di sana.
+
+### Jangan bungkus `lerd` dengan fungsi shell
+
+Dulu ada:
+
+```sh
+lerd() { if [ $# -eq 0 ]; then flatpak run sh.lerd.Desktop; else "$HOME/.local/bin/lerd" "$@"; fi; }
+```
+
+Fungsi itu **menutupi binary CLI** dan rawan membuat `lerd update` / `lerd start`
+membuka GUI. Sudah dihapus. GUI sekarang:
+
+```sh
+alias lerd-dashboard='flatpak run sh.lerd.Desktop'
+```
+
+Ini juga penting karena shim `lerd.exe` di Windows memanggil CLI lewat
+`wsl.exe` — fungsi shell tidak akan terpakai.
+
+---
+
+## Browser di WSL
+
+`~/.local/bin/lerd-browser` meneruskan URL ke Brave Origin (Linux/WSLg), dengan
+fallback Brave Windows, lalu **path absolut** `cmd.exe`:
+
+```sh
+WIN_CMD="/mnt/c/Windows/System32/cmd.exe"
+```
+
+Path absolut supaya tetap jalan kalau `/etc/wsl.conf` memakai
+`[interop] appendWindowsPath = false`.
+
+Dipasang lewat `BROWSER` di `~/.zshrc` **dan**
+`~/.config/environment.d/99-lerd-browser.conf` (untuk portal Flatpak).
+
+Untuk trust sertifikat di browser, lihat **`nss-ca-trust.md`** — nickname-nya
+harus `mkcert development CA <serial desimal>`, bukan `Lerd mkcert (viasco)`.
+
+---
+
+## DNS (split-DNS WSL)
+
+**Masalah**: Lerd memakai dnsmasq di port `5300` (link `lerd0`) untuk `*.test`,
+dan menulis `/etc/systemd/resolved.conf.d/lerd.conf`. Saat `lerd dns:repair`
+(atau `lerd install`) berjalan, file itu bisa ditimpa menjadi **hanya**
+`127.0.0.1:5300` sebagai DNS global → semua resolusi internet di WSL gagal.
+
+**Solusi**: `dns/lerd-dns-fix.sh` menulis ulang konfigurasi yang benar:
 
 ```
 *.test        -> link lerd0     -> 127.0.0.1:5300  (Lerd dnsmasq)
 domain lain   -> Global DNS     -> 1.1.1.1 / 8.8.8.8 (internet)
 ```
 
-Cara pakai (idempotent — aman diulang):
-
-```sh
-lerd-dns            # alias dari setup (→ ~/bin/lerd-dns-fix.sh)
-# atau langsung:     ./lerd/dns/lerd-dns-fix.sh
-```
-
 Jalankan saat:
-- Baru selesai `lerd dns:repair` / `lerd install` / update Lerd;
-- Internet di WSL tidak bisa resolve setelah restart WSL;
+- Baru selesai `lerd dns:repair` / `lerd install` / update lerd;
+- Internet di WSL tidak bisa resolve setelah restart;
 - `resolvectl dns` menunjukkan DNS global hanya `127.0.0.1:5300`.
 
-Script-nya butuh sudo (`sudo -n` — passwordless; bila tidak, jalankan manual dan masukkan
-password). Memverifikasi sendiri: uji `lerd-probe.test` (harus 200) + uji internet
-(`raw.githubusercontent.com`). Catatan dari script: `127.0.0.1:5300` yang ikut muncul di
-baris `Global:` adalah artifact tampilan systemd-resolved (DNS per-link `lerd0`), bukan
-DNS global kedua.
+```sh
+./lerd/dns/lerd-dns-fix.sh
+```
 
-## Cara pakai (mesin baru)
+Script butuh sudo. Verifikasi sendiri: uji `lerd-probe.test` (harus 200) dan
+`raw.githubusercontent.com`. Catatan: `127.0.0.1:5300` yang muncul di baris
+`Global:` adalah artefak tampilan systemd-resolved (DNS per-link `lerd0`),
+bukan DNS global kedua.
 
-Prasyarat: Lerd ter-install via flatpak, WSL dengan WSLg (Wayland).
+**Catatan kaki**: alias `lerd-dns` di `.zshrc` sudah dihapus — jalankan
+script-nya langsung supaya jelas apa yang dieksekusi.
+
+---
+
+## Update Lerd — dua kanal
+
+| Kanal | Perintah | Yang diperbarui |
+|---|---|---|
+| CLI | `lerd update` | binary di `~/.local/bin/lerd`, `lerd-tray`, dan `lerd.exe` (kalau tidak short-circuit) |
+| Flatpak | `flatpak update sh.lerd.Desktop` lalu `./lerd/apply-patch.sh` | GUI Linux; **patch dark title bar harus di-apply ulang** |
+
+Diagnosa versi:
 
 ```sh
-git clone git@github.com:bimoalfarrabi/opencode-dotfile.git
-cd opencode-dotfile
-./lerd/setup-lerd.sh        # idempotent — aman dijalankan ulang
+lerd version
+curl -s http://127.0.0.1:7073/api/version
 ```
 
-Lalu **restart WSL sekali** dari Windows: `wsl --shutdown` → buka WSL → jalankan Lerd.
-
-## Setelah update Lerd (`flatpak update`)
-
-Update Lerd menimpa file di dalam flatpak (patch hilang). Jalankan ulang:
+Dashboard yang menampilkan versi lama setelah `lerd update` biasanya karena
+`lerd-ui` masih proses lama:
 
 ```sh
-lerd-dark-titlebar.sh        # symlink → repo/lerd/apply-patch.sh (dipasang oleh setup)
-# atau langsung:
-./lerd/apply-patch.sh
+systemctl --user restart lerd-ui
 ```
 
-File di luar flatpak (desktop entry, ikon, override, `.wslgconfig`) bertahan.
+---
 
-## Update Lerd — dua kanal terpisah
-
-Lerd punya **dua komponen yang diperbarui lewat kanal berbeda**:
-
-| Komponen | Cara update | Keterangan |
-|----------|-------------|------------|
-| **CLI + lingkungan** (`~/.local/bin/lerd`, DNS, nginx, PHP-FPM, daemon dashboard) | `lerd update` di terminal | Update CLI → mengganti binary + menerapkan ulang infrastruktur (restart unit). |
-| **Desktop app** (Electron, Flatpak `sh.lerd.Desktop`) | `flatpak update sh.lerd.Desktop` | Aplikasi window-nya Flatpak — CLI `update` **tidak** menyentuh ini. Setelah `flatpak update`, re-apply patch title bar (`lerd-dark-titlebar.sh`). |
-
-**Tombol "Update" di dalam GUI**: menampilkan update untuk **CLI/env** (memanggil
-`/api/lerd/update-terminal` di daemon). Setelah diklik, window app menutup — ini perilaku
-normal: update CLI me-restart daemon, dan (berbeda dari installer native) Flatpak tidak
-me-relaunch window-nya sendiri. **Buka ulang app setelah update selesai.** Untuk update
-Desktop app, tetap via `flatpak update sh.lerd.Desktop`.
-
-Catatan bug yang diperbaiki (2026-08-22): `lerd update` di terminal pernah membuka GUI
-karena fungsi `lerd()` di `.zshrc` menutupi binary CLI. Sekarang fungsi hanya membuka GUI
-bila dipanggil tanpa argumen; dengan argumen, diteruskan ke CLI asli.
-
-**Gotcha: dashboard masih tampil versi lama setelah `lerd update`.** Daemon dashboard
-(`lerd serve-ui`, unit `lerd-ui.service`) adalah proses yang **sudah berjalan** dengan
-binary lama — `lerd update` mengganti file di disk tapi **tidak me-restart** daemon yang
-sedang jalan. Akibatnya GUI tetap menampilkan versi lama dan bilang "update available"
-walau CLI sudah di versi terbaru. Restart daemon-nya:
-```sh
-systemctl --user restart lerd-ui.service
-# verifikasi: curl -s http://127.0.0.1:7073/api/version
-#   -> {"current":"1.34.3","latest":"","has_update":false}
-```
-Lalu buka ulang app. (Catatan 2026-08-22: daemon lama yang start sebelum update binary
-menyebabkan GUI tampil "v1.33.1 installed, 1.34.3 available" padahal CLI sudah v1.34.3.)
-
-## Buka web project + sertifikat HTTPS di WSL (Brave Origin)
-
-Dua masalah saat membuka situs `*.test` dari WSL (diperbaiki 2026-08-22):
-
-**1. Klik "Open web project" tidak terjadi apa-apa.**
-Akar masalah (riset + bukti journal, 2026-08-22): rantai *dashboard → `window.open` →
-`setWindowOpenHandler` → `shell.openExternal` → xdg-open flatpak → portal
-`org.freedesktop.portal.OpenURI`*. Portal ini diimplementasikan di frontend
-xdg-desktop-portal **via GIO/GAppInfo** — ia **mengabaikan `$BROWSER`** dan memilih
-handler dari `.desktop` + `mimeapps.list` (`x-scheme-handler/http`). Handler default
-waktu itu `brave-origin.desktop` (sistem), di-launch proses portal **tanpa
-`DISPLAY`/`WAYLAND_DISPLAY`** → Brave langsung exit (`Missing X server or $DISPLAY`).
-
-Fix (dipasang `./shell/setup-zsh.sh`):
-- Handler user `~/.local/share/applications/lerd-browser.desktop`
-  (`Exec=~/.local/bin/lerd-browser %u`) + `~/.config/mimeapps.list` menetapkannya
-  sebagai default `x-scheme-handler/{http,https}` (mengalahkan default sistem).
-- Wrapper `~/.local/bin/lerd-browser` mengekspor `DISPLAY=:0`, `WAYLAND_DISPLAY=wayland-0`,
-  `XDG_RUNTIME_DIR` sebelum exec **Brave Origin** (Linux/WSLg,
-  `/opt/brave.com/brave-origin/brave`) — proses yang di-spawn portal bisa init platform
-  dan hand-off URL ke instance Brave yang sudah berjalan.
-- `$BROWSER` + `environment.d` tetap dipasang (berguna untuk `xdg-open` interaktif),
-  tapi **portal tidak memakainya** — yang berperan adalah .desktop/mimeapps.
-
-Verifikasi: `gdbus call --session --dest org.freedesktop.portal.Desktop --object-path
-/org/freedesktop/portal/desktop --method org.freedesktop.portal.OpenURI.OpenURI ""
-"https://example.com" "{}"` → request diterima, journal bersih dari `Missing X server`.
-
-**2. Browser menampilkan "Not secure" / HTTPS dicoret merah.**
-Situs `*.test` diserve HTTPS dengan sertifikat mkcert (`CN=mkcert viasco@viasco-pc`).
-Root CA sudah ada di store sistem WSL (`/etc/ssl/certs/lerd-mkcert-rootCA.pem` +
-symlink hash `ee488f2c.0`) — itu cukup untuk OpenSSL/curl. Tapi browser Chromium
-(Brave Origin) memakai **NSS db user** (`~/.pki/nssdb`), yang tadinya tidak ada.
-Fix (tanpa sudo):
-```sh
-mkdir -p ~/.pki/nssdb && chmod 700 ~/.pki/nssdb
-certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "Lerd mkcert (viasco)" \
-  -i ~/.local/share/mkcert/rootCA.pem
-# verifikasi: certutil -d sql:$HOME/.pki/nssdb -L   -> "Lerd mkcert (viasco) C,,"
-```
-Lalu **restart Brave Origin** (Chromium baru membaca NSS db saat start).
-Jika Lerd membuat CA baru, ulangi import di atas. Verifikasi cepat server-side:
-`curl -sS https://<site>.test/` harus `ssl_verify=0`.
-
-## Perbaikan scroll terpotong (bug)
-
-**Gejala**: setelah patch dark title bar, saat scroll ke paling bawah di dashboard,
-40px terbawah konten terpotong dan tidak bisa dicapai.
-
-**Akar masalah**: versi awal patch mengecilkan mount SPA `<div id="app">` ke
-`calc(100vh - 40px)` + `margin-top:40px` via JS (`shiftApp`). Tapi root layout SPA
-memakai Tailwind `h-screen` = `height:100vh` **tetap** (bukan relatif ke parent), dan
-`<body>` bersifat `overflow-hidden`. Karena root itu tidak ikut mengecil, viewport
-scroll-nya tetap `100vh` di dalam container `100vh - 40px`, sehingga 40px terbawah
-terpotong/tidak bisa di-scroll.
-
-**Solusi**: ganti mutasi DOM JS dengan injeksi `<style>` yang timing-aman (rule otomatis
-berlaku saat SPA client-render muncul), dan paksa root SPA menyesuaikan ukuran parent:
-
-```css
-#app { height: calc(100vh - 40px); margin-top: 40px; }
-#app > .h-screen { height: 100%; }   /* kunci: root SPA ikut mengecil */
-```
-
-Rule `#app > .h-screen { height: 100% }` inilah yang memperbaiki pemotongan — tanpa itu
-root tetap `100vh` dan ekor konten terpotong. `apply-patch.sh` (dan `main.js` yang sudah
-ter-deploy) sudah memuat perbaikan ini; re-apply setelah `flatpak update` tidak akan
-memunculkan bug lagi.
-
-## Ikon taskbar — status & batas
-
-Setup ini membuat ikon Lerd termuat di registry app-list WSLg (terverifikasi di
-`/mnt/wslg/weston.log`: `Icon image:0x...` non-nil) dan terkirim ke sisi Windows.
-Namun **ikon taskbar window tetap penguin** pada WSLg 1.0.73 (diuji: Wayland dan X11):
-jalur asosiasi window→taskbar WSLg mengirim `appIcon: nil`
-(`send_associate_window_app_id` — keluarga bug microsoft/wslg#1382, masih open).
-Ikon akan muncul otomatis bila WSLg diperbaiki; tidak ada kerja tambahan.
-
-## PHPactor LSP (Zed remote di WSL) — via container lerd
-
-phpactor di WSL gagal distart oleh Zed karena `PATH` memilih `phpactor.bat`
-Windows (tidak bisa dieksekusi WSL). Solusinya: instal phpactor di **home composer
-terpisah** di dalam container, biarkan lerd membuat shim Linux yang mendahului
-PATH Windows. Detail lengkap + verifikasi: `lerd/phpactor-wsl.md`.
-
-## Revert
+## Verifikasi cepat
 
 ```sh
-# 1. pulihkan file app (backup otomatis dibuat patch: *.bak-darktb-<ts>)
-SRC=~/.local/share/flatpak/app/sh.lerd.Desktop/current/active/files/main
-cp "$SRC/src/main.js.bak-darktb-"* "$SRC/src/main.js" 2>/dev/null || true
-cp "$SRC/src/preload.js.bak-darktb-"* "$SRC/src/preload.js" 2>/dev/null || true
-cp "$SRC/package.json.bak-darktb-"* "$SRC/package.json" 2>/dev/null || true
-
-# 2. override + desktop entry + ikon + wslgconfig
-flatpak override --user --reset sh.lerd.Desktop
-rm -f ~/.local/share/applications/Lerd.desktop
-rm -rf ~/.local/share/icons/hicolor/{16x16,24x24,32x32,48x48,64x64,128x128,256x256,512x512,scalable}/apps/Lerd.{png,svg}
-rm -f /mnt/c/Users/$USER/.wslgconfig
+bash -lc 'lerd doctor'                 # harus: All checks passed.
+bash -lc 'node -v; php -v | head -1'   # 22.x, 8.5.x (shim lerd)
+zsh  -ic 'node -v'                     # 22.x
+curl -sS -o /dev/null -w '%{http_code}\n' https://titit.test   # 302/200
 ```
+
+Dari PowerShell:
+
+```powershell
+lerd --version
+Resolve-DnsName titit.test      # ::1 + 127.0.0.1
+curl.exe https://titit.test     # 200
+```
+
+`curl.exe` menolak sertifikat `.test` karena meminta revocation check —
+itu normal, browser tetap aman. Pakai `--ssl-no-revoke` kalau perlu.
+
+---
 
 ## Struktur modul
 
 ```
 lerd/
-├── setup-lerd.sh           # orkestrator idempotent (install semua)
-├── apply-patch.sh          # patch flatpak app (kanonik; = lerd-dark-titlebar.sh)
-├── dns/
-│   └── lerd-dns-fix.sh     # fix split-DNS WSL (setelah lerd dns:repair / install)
-├── assets/hicolor/…        # ikon Lerd 8 ukuran + svg (single source of truth)
-├── templates/
-│   ├── Lerd.desktop        # desktop entry (token __HOME__)
-│   └── .wslgconfig.example # konfigurasi Windows (token __USER__)
-└── README.md               # dokumen ini
+├── README.md                 # dokumen ini
+├── setup-wsl2.sh             # .wslconfig + lerd.exe + node:manage + wsl:setup
+├── setup-desktop-app.sh      # tray + toast Windows (ekstrak asar, registrasi HKCU)
+├── nss-ca-trust.md           # trust HTTPS di browser (nickname mkcert)
+├── DIAGNOSIS.md              # catatan debug historis (dark title bar, ikon WSLg)
+├── setup-lerd.sh             # [cadangan] Flatpak WSLg: patch + desktop entry + ikon
+├── apply-patch.sh            # [cadangan] patch dark title bar di dalam flatpak
+├── dns/lerd-dns-fix.sh       # split-DNS WSL
+├── phpactor-wsl.md           # LSP phpactor via container lerd
+├── assets/hicolor/           # ikon untuk Flatpak desktop entry
+└── templates/                # Lerd.desktop + .wslgconfig.example
 ```
 
-Referensi teknis lengkap (riwayat diagnosis title bar + ikon): `lerd/DIAGNOSIS.md`.
-Topik terkait di repo: `open-design/`, `agents-skills/`.
+## Revert
+
+**Integrasi Windows:**
+
+```sh
+lerd wsl:setup      # idempoten; tidak ada perintah revert khusus
+```
+
+Hapus manual kalau perlu: `%LOCALAPPDATA%\lerd`, entri PATH User, NRPT rule
+ber-`Comment=lerd`, firewall `lerd-lan`, dan key `HKCU\Software\Classes\lerd`.
+
+**Desktop app:**
+
+```powershell
+Remove-Item 'HKCU:\Software\Classes\AppUserModelId\sh.lerd.Lerd' -Recurse
+Remove-Item 'HKCU:\Software\Classes\lerd' -Recurse
+Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'lerd-desktop'
+Remove-Item "$env:LOCALAPPDATA\Lerd" -Recurse -Force
+```
+
+lalu jalankan `lerd wsl:setup` supaya agent kembali ke Run key sendiri.
+
+**Flatpak:** lihat bagian Revert di `DIAGNOSIS.md`.
