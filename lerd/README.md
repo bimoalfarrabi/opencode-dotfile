@@ -473,3 +473,19 @@ Remove-Item "$env:LOCALAPPDATA\Lerd" -Recurse -Force
 lalu jalankan `lerd wsl:setup` supaya agent kembali ke Run key sendiri.
 
 **Flatpak:** lihat bagian Revert di `DIAGNOSIS.md`.
+
+---
+
+### Resolusi *.test di Windows
+
+Agent DNS Windows (`lerd.exe --agent`) bind `127.0.0.1:53`, tapi di mesin ini
+listener lain (svchost, `0.0.0.0:53`) menelan setiap query yang valid — lerd
+tidak punya cara mendeteksi socket yang ter-bind tapi ter-shadow, sehingga
+`*.test` tidak pernah resolve di sisi Windows. Workaround:
+`bash lerd/sync-windows-hosts.sh` menulis semua domain site terdaftar dari
+`sites.yaml` sebagai `127.0.0.1` di hosts Windows dalam blok bertanda
+`# >>> lerd` (satu prompt UAC, backup + flushdns otomatis). Dengan mirrored
+networking, `127.0.0.1:443` Windows menjangkau nginx di WSL, jadi entri hosts
+cukup. Pakai `--check` untuk cek drift tanpa menulis, `--dry-run` untuk
+melihat bloknya. **Jalankan ulang setiap kali menambah atau mengganti nama
+site.**
