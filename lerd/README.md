@@ -489,3 +489,7 @@ networking, `127.0.0.1:443` Windows menjangkau nginx di WSL, jadi entri hosts
 cukup. Pakai `--check` untuk cek drift tanpa menulis, `--dry-run` untuk
 melihat bloknya. **Jalankan ulang setiap kali menambah atau mengganti nama
 site.**
+
+Diagnosis lengkap + bukti bisect-nya (kenapa agent DNS Windows tidak menerima
+query yang sah, dan kenapa `dnsTunneling=true` sengaja tidak diubah):
+`windows-dns-diagnosis.md`.
