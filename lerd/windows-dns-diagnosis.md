@@ -46,10 +46,13 @@ dikirim semua klien sungguhan. Kontrol: kedua paket yang sama dikirim ke listene
 `127.0.0.1:5399` dan **keduanya sampai**, jadi pengirimnya bukan penyebab.
 
 Artinya `winshim.Answer` (lerd) tidak pernah menerima query yang sah; datagram-nya ditelan
-sesuatu lebih dulu. Kandidat: listener wildcard `0.0.0.0:53` milik `svchost` (host HNS /
-iphlpsvc / SharedAccess). Menjalankan `Stop-Service SharedAccess` (elevated) **tidak**
-menghilangkan endpoint itu dan tidak memperbaiki apa pun; ICS juga tidak sedang membagi koneksi
-(tidak ada `192.168.137.1`), jadi ICS bukan penyebabnya.
+sesuatu lebih dulu.
+
+**Penyebabnya terkonfirmasi 2026-11-07: NextDNS for Windows** — lihat bagian
+"Akar masalah terkonfirmasi" di bawah. Dugaan awal di berkas ini (socket wildcard `0.0.0.0:53`
+milik `svchost`) **salah**. `Stop-Service SharedAccess` (elevated) memang tidak menghilangkan
+endpoint itu dan tidak memperbaiki apa pun; ICS juga tidak sedang membagi koneksi
+(tidak ada `192.168.137.1`).
 
 ## Kenapa WSL tidak terpengaruh
 
@@ -60,28 +63,57 @@ WSL memakai jalur sendiri: `systemd-resolved` → `lerd0` (`~test`) → `lerd dn
 `/etc/wsl.conf` sudah `generateResolvConf=false`, dan `resolv.conf` dikelola systemd-resolved —
 jadi WSL **tidak** bergantung pada `dnsTunneling`.
 
-## Dua perbaikan
+## Akar masalah terkonfirmasi (2026-11-07): NextDNS
 
-### 1. Menyingkirkan benturan port 53 (perbaikan akar)
+Bukan `dnsTunneling`, bukan `svchost`, bukan ICS. Di mesin ini terpasang **NextDNS for Windows**,
+dan layanannya menyebut dirinya sendiri:
 
-`networkingMode=mirrored` + `dnsTunneling=true` adalah default yang ditulis lerd sendiri
-(`internal/wsl/wsl.go:113-114`, `docs/getting-started/wsl2.md:96-121`). Di mesin ini
-`0.0.0.0:53` dipegang `svchost`, di atas socket agent yang sudah bind ke `127.0.0.1:53`.
-
-Calon terkuat: `dnsTunneling` (HNS). Karena WSL tidak memakai tunneling (lihat di atas),
-mematikannya berbiaya rendah:
-
-```ini
-[wsl2]
-networkingMode=mirrored
-dnsTunneling=false     ; ← tambahan
-firewall=true
-autoProxy=true
+```
+NextDNSService  [Running]  NextDNS DNS53 to DoH proxy.
+NextDNSEngine   C:\WINDOWS\system32\DRIVERS\NextDNSEngine.sys
+install:        C:\Program Files (x86)\NextDNS\NextDNSService.exe
 ```
 
-lalu `wsl --shutdown` dari Windows. Kalau setelah itu `Resolve-DnsName titit.test` mengembalikan
-`127.0.0.1`, akarnya terkonfirmasi dan semua aplikasi Windows (browser apa pun, curl, PHP CLI)
-ikut sembuh.
+`netsh wfp show state` memuat callout-nya: `NextDNSEngine Datagram IPv4`, `Datagram IPv6`,
+`Auth Connect`, `Flow Established`, `NextDNSEngine Provider`, `NextDNSEngine Sublayer`.
+
+Callout datagram di port 53 itu menjelaskan **semua** keanehan di atas: intersepsinya
+sadar-isi (query sah diparse lalu diambil, datagram cacat lolos), tidak terikat alamat
+(bukan socket, jadi `127.0.0.2:53` sama saja dengan `127.0.0.1:53`), dan tidak terlihat oleh
+agent.
+
+### Uji kausal
+
+Listener biasa di `127.0.0.2:53`, satu query A yang sah, hanya status layanan yang diubah:
+
+| `NextDNSService` | query sah ke `127.0.0.2:53` |
+|---|---|
+| Running | **tidak sampai** |
+| Stopped | **sampai** (28 byte) |
+| Running lagi | **tidak sampai** |
+
+Reversibel, satu variabel. Dengan layanan berhenti, `curl https://project-management.test/`
+kembali **HTTP 200** dan `Resolve-DnsName project-management.test` mengembalikan `127.0.0.1`,
+sementara DNS internet tetap normal (mesin ini memakai resolver router; NextDNS bukan resolver
+sistem).
+
+Catatan: entri hosts dari workaround sudah terpasang saat uji itu, jadi `Resolve-DnsName`
+sendirian bukan pembeda — probe mentah ke `127.0.0.2:53` yang menentukan, karena nama itu tidak
+ada di hosts.
+
+### Konsekuensi
+
+Selama NextDNS menyerobot port 53, agent lerd tidak akan pernah menerima query dan `*.test`
+tidak bisa resolve di Windows. Pilihannya:
+
+1. **Biarkan NextDNS, pakai hosts** — keadaan sekarang; `*.test` jalan, filter NextDNS tetap aktif.
+2. **Matikan `NextDNSService`** — agent lerd langsung berfungsi dan entri hosts bisa dihapus,
+   tapi kehilangan filter NextDNS di Windows.
+
+`dnsTunneling=false` **tidak** diperlukan dan tidak akan menolong; `dnsTunneling=true` tetap
+nilai yang lerd rekomendasikan.
+
+## Alternatif lain (tidak dipakai)
 
 ### 2. Bypass di level browser (tanpa restart, tanpa risiko)
 

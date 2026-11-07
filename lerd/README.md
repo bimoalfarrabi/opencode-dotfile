@@ -479,9 +479,10 @@ lalu jalankan `lerd wsl:setup` supaya agent kembali ke Run key sendiri.
 ### Resolusi *.test di Windows
 
 Agent DNS Windows (`lerd.exe --agent`) bind `127.0.0.1:53`, tapi di mesin ini
-listener lain (svchost, `0.0.0.0:53`) menelan setiap query yang valid — lerd
-tidak punya cara mendeteksi socket yang ter-bind tapi ter-shadow, sehingga
-`*.test` tidak pernah resolve di sisi Windows. Workaround:
+**NextDNS** (`NextDNSService`, "DNS53 to DoH proxy", plus driver WFP
+`NextDNSEngine.sys`) mencegat setiap query DNS yang sah di port 53 sebelum
+sampai ke socket — lerd tidak punya cara mendeteksinya, sehingga `*.test`
+tidak pernah resolve di sisi Windows. Workaround:
 `bash lerd/sync-windows-hosts.sh` menulis semua domain site terdaftar dari
 `sites.yaml` sebagai `127.0.0.1` di hosts Windows dalam blok bertanda
 `# >>> lerd` (satu prompt UAC, backup + flushdns otomatis). Dengan mirrored
