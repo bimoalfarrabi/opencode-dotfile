@@ -1,0 +1,21 @@
+# Catppuccin Mocha for lerd
+#
+# Palette: https://catppuccin.com/palette/#mocha
+# Usage:   https://github.com/catppuccin/catppuccin/blob/main/docs/style-guide.md
+#
+# Dark mode is the Mocha flavour. Light mode keeps lerd's white surfaces and
+# borrows Latte's Blue for the accent, because Mocha's pastel Blue does not
+# reach AA on white. The two hover tones are left out on purpose: lerd derives
+# them from the accent with the same 12% step it uses for its built-in themes.
+name: Catppuccin Mocha
+
+# Accent — links, active tabs, buttons, focus rings.
+accent: "#1e66f5"       # Latte Blue, 4.9:1 on white
+accent_dark: "#89b4fa"  # Mocha Blue, 8.3:1 on Mantle
+
+# Surfaces — Mocha, shifted one step darker than the style guide's default:
+# the page is Crust instead of Base, with Mantle for the raised surfaces.
+bg: "#11111b"      # Crust — page background (darkest Mocha tone)
+card: "#181825"    # Mantle — cards, tooltips, inputs, rail and header
+border: "#313244"  # Surface 0 — card and divider borders
+muted: "#7f849c"   # Overlay 1 — dim text and inactive marks

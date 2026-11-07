@@ -446,9 +446,44 @@ lerd/
 ├── apply-patch.sh            # [cadangan] patch dark title bar di dalam flatpak
 ├── dns/lerd-dns-fix.sh       # split-DNS WSL
 ├── phpactor-wsl.md           # LSP phpactor via container lerd
+├── themes/                   # tema dashboard lerd (Catppuccin Mocha)
 ├── assets/hicolor/           # ikon untuk Flatpak desktop entry
 └── templates/                # Lerd.desktop + .wslgconfig.example
 ```
+
+## Tema dashboard — Catppuccin Mocha
+
+Tema dashboard lerd adalah YAML di `~/.config/lerd/themes/`; nama file menjadi
+id tema. `themes/catppuccin-mocha.yaml` memakai palet resmi
+[Catppuccin Mocha](https://catppuccin.com/palette/#mocha) dengan pemetaan dari
+[style guide](https://github.com/catppuccin/catppuccin/blob/main/docs/style-guide.md):
+
+| Fungsi style guide | Warna | Token lerd |
+|---|---|---|
+| Background Pane | Crust `#11111b` | `bg` |
+| Secondary Panes | Mantle `#181825` | `card` |
+| Surface Elements | Surface 0 `#313244` | `border` |
+| Subtle | Overlay 1 `#7f849c` | `muted` |
+| Links, URLs | Mocha Blue `#89b4fa` | `accent_dark` |
+| Links, URLs (light) | Latte Blue `#1e66f5` | `accent` |
+
+Halaman memakai **Crust**, bukan Base, karena Base `#1e1e2e` masih terlalu
+terang untuk setup ini. Crust adalah tone paling gelap yang dimiliki Mocha;
+tidak ada tone resmi yang lebih gelap. Light mode tetap memakai permukaan putih
+lerd dan meminjam Latte Blue, karena Mocha Blue hanya 1,9:1 di atas putih
+(gagal AA). Hover tidak ditulis di file: lerd menurunkannya sendiri dengan step
+12% yang sama seperti tema bawaan.
+
+Pasang:
+
+```sh
+mkdir -p ~/.config/lerd/themes
+cp lerd/themes/catppuccin-mocha.yaml ~/.config/lerd/themes/
+```
+
+Pilih di **System → lerd → Theme → Catppuccin Mocha**. Tidak perlu restart;
+file muncul di picker begitu disimpan. Pemilihan tema sengaja tidak diotomasi
+lewat API — dokumentasi lerd menyebut tema adalah pilihan personal.
 
 ## Revert
 
