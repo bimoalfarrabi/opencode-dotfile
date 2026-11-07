@@ -481,6 +481,13 @@ mkdir -p ~/.config/lerd/themes
 cp lerd/themes/catppuccin-mocha.yaml ~/.config/lerd/themes/
 ```
 
+Kalau repo ini yang jadi sumber kebenaran, pakai symlink supaya edit di repo
+langsung terbaca lerd:
+
+```sh
+ln -sfn "$PWD/lerd/themes/catppuccin-mocha.yaml" ~/.config/lerd/themes/
+```
+
 Pilih di **System → lerd → Theme → Catppuccin Mocha**. Tidak perlu restart;
 file muncul di picker begitu disimpan. Pemilihan tema sengaja tidak diotomasi
 lewat API — dokumentasi lerd menyebut tema adalah pilihan personal.
