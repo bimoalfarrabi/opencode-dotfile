@@ -101,14 +101,27 @@ Catatan: entri hosts dari workaround sudah terpasang saat uji itu, jadi `Resolve
 sendirian bukan pembeda — probe mentah ke `127.0.0.2:53` yang menentukan, karena nama itu tidak
 ada di hosts.
 
-### Konsekuensi
+### Yang dipilih di mesin ini (2026-11-07)
 
-Selama NextDNS menyerobot port 53, agent lerd tidak akan pernah menerima query dan `*.test`
-tidak bisa resolve di Windows. Pilihannya:
+`NextDNSService` di-**stop** dan startup-nya di-**Disable**. Hasilnya agent lerd langsung
+bekerja tanpa workaround apa pun:
 
-1. **Biarkan NextDNS, pakai hosts** — keadaan sekarang; `*.test` jalan, filter NextDNS tetap aktif.
-2. **Matikan `NextDNSService`** — agent lerd langsung berfungsi dan entri hosts bisa dihapus,
-   tapi kehilangan filter NextDNS di Windows.
+```
+Resolve-DnsName bogus-site.test          -> ::1, 127.0.0.1
+Resolve-DnsName tidak-ada-di-hosts.test  -> ::1, 127.0.0.1   (nama ini tidak ada di hosts)
+nslookup titit.test 127.0.0.1            -> ::1, 127.0.0.1
+Resolve-DnsName google.com               -> OK
+```
+
+Driver `NextDNSEngine` masih ter-load, tapi callout-nya inert selama service mati, dan UI
+NextDNS tidak punya autostart — jadi tidak akan menyalakannya sendiri.
+
+**Blok hosts tetap dipasang, tapi tujuannya berubah.** Brave memakai secure DoH
+(`chrome.cloudflare-dns.com`) yang melewati resolver sistem dan NRPT; tanpa entri hosts,
+`*.test` tetap gagal di Brave walaupun agent lerd sudah sehat. Jadi hosts sekarang berfungsi
+sebagai bypass DoH, bukan lagi workaround NextDNS.
+
+Kalau nanti ingin menghapus hosts: matikan secure DoH di Brave dulu, baru hapus bloknya.
 
 `dnsTunneling=false` **tidak** diperlukan dan tidak akan menolong; `dnsTunneling=true` tetap
 nilai yang lerd rekomendasikan.

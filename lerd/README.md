@@ -478,11 +478,13 @@ lalu jalankan `lerd wsl:setup` supaya agent kembali ke Run key sendiri.
 
 ### Resolusi *.test di Windows
 
-Agent DNS Windows (`lerd.exe --agent`) bind `127.0.0.1:53`, tapi di mesin ini
-**NextDNS** (`NextDNSService`, "DNS53 to DoH proxy", plus driver WFP
-`NextDNSEngine.sys`) mencegat setiap query DNS yang sah di port 53 sebelum
-sampai ke socket — lerd tidak punya cara mendeteksinya, sehingga `*.test`
-tidak pernah resolve di sisi Windows. Workaround:
+Agent DNS Windows (`lerd.exe --agent`) bind `127.0.0.1:53`, tapi **NextDNS**
+(`NextDNSService`, "DNS53 to DoH proxy", plus driver WFP `NextDNSEngine.sys`)
+mencegat setiap query DNS yang sah di port 53 sebelum sampai ke socket — lerd
+tidak punya cara mendeteksinya, sehingga `*.test` tidak pernah resolve di sisi
+Windows. Di mesin ini `NextDNSService` sudah di-stop dan di-Disable, jadi agent
+bekerja native. Workaround di bawah tetap dipakai karena Brave memakai secure
+DoH yang melewati resolver sistem:
 `bash lerd/sync-windows-hosts.sh` menulis semua domain site terdaftar dari
 `sites.yaml` sebagai `127.0.0.1` di hosts Windows dalam blok bertanda
 `# >>> lerd` (satu prompt UAC, backup + flushdns otomatis). Dengan mirrored
