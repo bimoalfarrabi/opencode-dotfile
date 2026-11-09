@@ -64,6 +64,16 @@
       ],
       "enabled": true
     },
+    "obscura": {
+      "type": "local",
+      "command": [
+        "{{OBSCURA_BIN}}",
+        "mcp",
+        "--stealth",
+        "--allow-private-network"
+      ],
+      "enabled": true
+    },
     "rea": {
       "type": "local",
       "command": [

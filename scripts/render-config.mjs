@@ -10,6 +10,7 @@
  *                           design-systems, apps/daemon MCP server)
  *   {{AGENTS_SKILLS}}    -> agents skills dir
  *   {{HEADROOM_BIN}}     -> headroom binary path (MCP server; disabled by default)
+ *   {{OBSCURA_BIN}}      -> obscura binary path (MCP browser server; see docs/obscura.md)
  *   {{REA_GHIDRA_DIR}}   -> Ghidra install dir for the rea MCP server
  *   {{REA_JAVA_HOME}}    -> JDK home for the rea MCP server
  *   {{WEB_SEARCH_MCP_DIR}} -> web-search MCP checkout (dist/index.js)
@@ -19,6 +20,7 @@
  * secrets.env.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -39,6 +41,13 @@ const AGENTS_SKILLS = join(HOME, ".agents", "skills");
 // headroom binary: default to ~/.local/bin/headroom; override via env
 const HEADROOM_BIN = process.env.HEADROOM_BIN
   || join(HOME, ".local", "bin", "headroom");
+
+// obscura binary: default to ~/.local/bin/obscura when present (Linux/WSL install
+// path), otherwise the bare name so the OS PATH decides — on Windows the release
+// zip is unpacked somewhere on PATH and appends .exe itself. Override via env.
+const OBSCURA_LOCAL_BIN = join(HOME, ".local", "bin", "obscura");
+const OBSCURA_BIN = process.env.OBSCURA_BIN
+  || (existsSync(OBSCURA_LOCAL_BIN) ? OBSCURA_LOCAL_BIN : "obscura");
 
 // rea (reverse-engineering) MCP: Ghidra + a JDK, both optional. Empty string
 // keeps the JSON valid; the server starts without them and just loses the
@@ -93,6 +102,7 @@ const rendered = template
   .replaceAll("{{OPEN_DESIGN_DIR}}", escapeJsonPath(OPEN_DESIGN_DIR))
   .replaceAll("{{AGENTS_SKILLS}}", escapeJsonPath(AGENTS_SKILLS))
   .replaceAll("{{HEADROOM_BIN}}", escapeJsonPath(HEADROOM_BIN))
+  .replaceAll("{{OBSCURA_BIN}}", escapeJsonPath(OBSCURA_BIN))
   .replaceAll("{{REA_GHIDRA_DIR}}", escapeJsonPath(REA_GHIDRA_DIR))
   .replaceAll("{{REA_JAVA_HOME}}", escapeJsonPath(REA_JAVA_HOME))
   .replaceAll("{{WEB_SEARCH_MCP_DIR}}", escapeJsonPath(WEB_SEARCH_MCP_DIR));
@@ -108,6 +118,7 @@ console.log(`Rendered config -> ${out}`);
 console.log(`  OPEN_DESIGN_DIR = ${OPEN_DESIGN_DIR}`);
 console.log(`  AGENTS_SKILLS   = ${AGENTS_SKILLS}`);
 console.log(`  HEADROOM_BIN    = ${HEADROOM_BIN}`);
+console.log(`  OBSCURA_BIN     = ${OBSCURA_BIN}`);
 console.log(`  REA_GHIDRA_DIR  = ${REA_GHIDRA_DIR || "(unset — rea Ghidra tools disabled)"}`);
 console.log(`  REA_JAVA_HOME   = ${REA_JAVA_HOME || "(unset)"}`);
 console.log(`  WEB_SEARCH_DIR  = ${WEB_SEARCH_MCP_DIR}`);
@@ -120,4 +131,21 @@ if (!existsSync(join(WEB_SEARCH_MCP_DIR, "dist", "index.js"))) {
 }
 if (REA_GHIDRA_DIR && !existsSync(REA_GHIDRA_DIR)) {
   console.warn(`WARN: REA_GHIDRA_DIR does not exist: ${REA_GHIDRA_DIR}`);
+}
+if (!existsSync(OBSCURA_BIN) && OBSCURA_BIN !== "obscura") {
+  console.warn(`WARN: obscura binary not found: ${OBSCURA_BIN}`);
+}
+if (OBSCURA_BIN === "obscura") {
+  // Bare name: resolve it through the OS so a fresh machine still renders, and
+  // only warn when nothing answers. `where` on Windows, `command -v` elsewhere —
+  // setup-windows.ps1 runs this same renderer, which has no POSIX shell.
+  try {
+    if (process.platform === "win32") {
+      execFileSync("where", ["obscura"], { stdio: "ignore" });
+    } else {
+      execFileSync("sh", ["-c", "command -v obscura"], { stdio: "ignore" });
+    }
+  } catch {
+    console.warn("WARN: `obscura` not on PATH — the obscura MCP server will fail to start (see docs/obscura.md)");
+  }
 }

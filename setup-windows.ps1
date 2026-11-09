@@ -123,6 +123,55 @@ function Invoke-Secrets {
   return $true
 }
 
+# --- obscura (MCP browser engine) -------------------------------------------
+# Obscura ships a Windows x86_64 zip (no C++ build tools). Fetched only when
+# `obscura` is not already on PATH; unpacked to %LOCALAPPDATA%\obscura\bin and
+# added to the user PATH so future shells (and OpenCode) resolve it.
+# See docs/obscura.md.
+$script:ObscuraVersion = if ($env:OBSCURA_VERSION) { $env:OBSCURA_VERSION } else { "0.2.6" }
+
+function Invoke-Obscura {
+  if (Get-Command obscura -ErrorAction SilentlyContinue) {
+    Write-Step "obscura already installed: $((Get-Command obscura).Source)"
+    return
+  }
+
+  $zip = "obscura-x86_64-windows-stealth.zip"
+  $url = "https://github.com/h4ckf0r0day/obscura/releases/download/v$script:ObscuraVersion/$zip"
+  $binDir = Join-Path $env:LOCALAPPDATA "obscura\bin"
+  $tmp = Join-Path $env:TEMP "obscura-$([guid]::NewGuid().ToString('N'))"
+
+  Write-Step "Downloading obscura v$script:ObscuraVersion (stealth)..."
+  try {
+    New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+    Invoke-WebRequest -Uri $url -OutFile (Join-Path $tmp $zip) -UseBasicParsing -ErrorAction Stop
+    Expand-Archive -Path (Join-Path $tmp $zip) -DestinationPath $tmp -Force -ErrorAction Stop
+    New-Item -ItemType Directory -Force -Path $binDir | Out-Null
+    # Keep obscura + obscura-worker side by side (parallel `scrape` needs the pair)
+    Get-ChildItem -Path $tmp -Filter "obscura*.exe" | Copy-Item -Destination $binDir -Force
+    # Fall back to extension-less binaries if the archive layout ever changes
+    if (-not (Test-Path (Join-Path $binDir "obscura.exe"))) {
+      Get-ChildItem -Path $tmp -Filter "obscura*" -File | Copy-Item -Destination $binDir -Force
+    }
+  } catch {
+    Write-Warning "obscura: download/extract failed ($url) - the obscura MCP server will not start"
+    Write-Warning "  grab it manually from https://github.com/h4ckf0r0day/obscura/releases"
+  } finally {
+    Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+  }
+
+  if ((Test-Path (Join-Path $binDir "obscura.exe")) -or (Test-Path (Join-Path $binDir "obscura"))) {
+    # Persist on the user PATH; also set it for this process so the render below sees it.
+    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    if ($userPath -notlike "*$binDir*") {
+      [Environment]::SetEnvironmentVariable("Path", "$userPath;$binDir", "User")
+      Write-Step "  added $binDir to the user PATH (restart your shell)"
+    }
+    $env:Path = "$env:Path;$binDir"
+    Write-Step "obscura installed: $binDir"
+  }
+}
+
 # --- open-design clone + daemon ------------------------------------------
 function Invoke-OpenDesign {
   if (-not (Test-Path (Join-Path $Repo "open-design\apps\daemon"))) {
@@ -144,6 +193,7 @@ if ($Secrets) { Invoke-Secrets; exit 0 }
 
 Invoke-Prereqs
 Invoke-LinkAssets
+Invoke-Obscura
 Invoke-Render
 Invoke-OpenDesign
 Invoke-Secrets

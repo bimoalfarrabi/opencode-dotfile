@@ -34,6 +34,7 @@ opencode-dotfiles/
 ├── docs/
 │   ├── windows-terminal.md     # kustomisasi Windows Terminal (Catppuccin Mocha) + cara migrasi
 │   ├── shell.md                # kustomisasi shell (zsh WSL + PowerShell 7) + cara migrasi
+│   ├── obscura.md              # browser headless Rust untuk MCP: install, wiring, tool, batasan
 │   └── omo-slim.md             # preset agent/model oh-my-opencode-slim: peran + cara ganti model
 ├── scripts/
 │   └── render-config.mjs       # ubah opencode.json.template → opencode.json (lintas-platform)
@@ -49,8 +50,9 @@ opencode-dotfiles/
   Linux `~/.config/opencode/`, Windows `%USERPROFILE%\.config\opencode\`.
 - `opencode.json.template` menyimpan **tanpa path absolut dan tanpa secret**:
   - `{{OPEN_DESIGN_DIR}}`, `{{AGENTS_SKILLS}}`, `{{HEADROOM_BIN}}`,
-    `{{REA_GHIDRA_DIR}}`, `{{REA_JAVA_HOME}}`, `{{WEB_SEARCH_MCP_DIR}}` adalah
-    token path — diganti saat render, bisa di-override lewat env var bernama sama.
+    `{{REA_GHIDRA_DIR}}`, `{{REA_JAVA_HOME}}`, `{{WEB_SEARCH_MCP_DIR}}`,
+    `{{OBSCURA_BIN}}` adalah token path — diganti saat render, bisa di-override
+    lewat env var bernama sama.
   - Semua API key berupa placeholder `{env:VAR}` yang di-resolve OpenCode saat runtime.
 - `scripts/render-config.mjs` mengganti token dengan path asli sesuai OS saat ini
   lalu menulis `opencode.json` final ke direktori config.
@@ -81,6 +83,7 @@ ke `~/.cache/opencode/node_modules/`.
 | **21st** | remote | aktif | Registry komponen React/Tailwind (`https://21st.dev/api/mcp`) — `search`, `get_component`, `get_theme`, bookmarks. Key `{env:TWENTYFIRST_API_KEY}`, dikirim sebagai header `x-api-key`. |
 | **codegraph** | local | aktif | Grafik pengetahuan kode (`codegraph serve --mcp`) — query simbol/arsitektur. |
 | **lerd** | local | aktif | Lingkungan PHP lokal Podman (`lerd mcp`) — site, service, db, worker, log, profil request. Butuh `lerd` ter-install. |
+| **obscura** | local | aktif | Browser headless Rust (`obscura mcp --stealth --allow-private-network`) — 38 tool: navigate, snapshot, click, fill form, extract, tab, cookie/session, screenshot, PDF. Pengganti headless Chrome yang jauh lebih ringan; `--allow-private-network` agar bisa membuka dev server lokal. Path via token `{{OBSCURA_BIN}}`. Detail: `docs/obscura.md`. |
 | **rea** | local | aktif | Reverse engineering (`npx -y rea-agents@6.4.0 mcp`) — binary, Electron, browser, firmware. `GHIDRA_INSTALL_DIR`/`JAVA_HOME` via token `{{REA_GHIDRA_DIR}}`/`{{REA_JAVA_HOME}}`; kosong = tool Ghidra mati, sisanya tetap jalan. |
 | **web-search** | local | aktif | Search web lokal (`{{WEB_SEARCH_MCP_DIR}}/dist/index.js`) — checkout `mcp-servers/web-search-mcp`, harus di-build dulu. |
 | **headroom** | local | nonaktif | Dimatikan; path binary via `{{HEADROOM_BIN}}`. |
@@ -300,6 +303,31 @@ Kedua shell memakai tema **Catppuccin Mocha** (senada dengan Windows Terminal & 
 File konfigurasi ada di `shell/` (zshrc, profile ps1, zen.toml). Detail + migrasi:
 `docs/shell.md`.
 
+## Obscura (browser headless untuk MCP)
+
+MCP `obscura` memberi agent kemampuan browsing sungguhan — buka halaman, ambil
+snapshot/screenshot, klik, isi form, baca cookie/session — tanpa mengunduh Chromium.
+Engine-nya Rust + V8, bicara CDP, jadi kode Playwright yang sudah ada juga bisa
+menyambung ke `obscura serve` tanpa diubah.
+
+Alasan dipakai: **51 MB** RAM saat halaman termuat vs ±450 MB Chromium headless
+(ukur di mesin ini, bukan angka brosur), anti-fingerprint bawaan, dan tidak perlu
+Node/Chromium untuk menjalankannya. Konsekuensinya startup dingin lebih lambat
+(3.6 s vs 1.4 s) — tidak terasa di MCP karena prosesnya hidup sepanjang sesi.
+
+```sh
+./setup-linux.sh          # unduh binary stealth ke ~/.local/bin (idempoten)
+./setup-windows.ps1       # unduh zip ke %LOCALAPPDATA%\obscura\bin + user PATH
+```
+
+Wiring ada di `config/opencode.json.template` sebagai
+`obscura mcp --stealth --allow-private-network`, dengan binary di-resolve lewat
+token `{{OBSCURA_BIN}}`. `--allow-private-network` diperlukan agar agent bisa
+membuka dev server lokal; tanpa itu SSRF guard menolak `127.0.0.1` dan `*.test`.
+
+Detail lengkap (varian rilis, 38 tool, hasil uji fingerprint, batasan,
+pemakaian sebagai CDP server): `docs/obscura.md`.
+
 ## oh-my-opencode-slim (agent/model routing)
 
 Preset `config/oh-my-opencode-slim.json` mengatur **role agent → model** (default preset
@@ -338,6 +366,7 @@ Yang berikut ini **tidak tercakup** oleh repo — ia layanan/binary per-host:
 | **Proxy lokal 9router** | `providers.9router.settings.baseURL` = `http://127.0.0.1:20128/v1` — router model default (DeepSeek V4 Flash dll). Berjalan **di mesin**, bukan di config. Windows perlu proxy ini berjalan di port 20128, jika tidak agent/model default tidak akan tersambung. | Instalasi 9router lokal |
 | **codegraph** | MCP server `codegraph serve --mcp` | lihat https://codegraph.dev — install di Windows |
 | **lerd** | MCP server `lerd mcp` | https://lerd.dev — PHP/Podman dev env; site harus ter-link |
+| **obscura** | MCP server `obscura mcp --stealth --allow-private-network` | binary dari [Releases](https://github.com/h4ckf0r0day/obscura/releases) — diunduh otomatis oleh `setup-linux.sh` / `setup-windows.ps1`. Linux/WSL: `~/.local/bin/obscura` (+ `obscura-worker` di folder yang sama); Windows: `%LOCALAPPDATA%\obscura\bin` lalu masuk user PATH. Manual/override: `OBSCURA_BIN`, versi: `OBSCURA_VERSION`. Detail: `docs/obscura.md` |
 | **rea** | MCP server `npx -y rea-agents@6.4.0 mcp` | Node/npx wajib ada. Ghidra opsional: set `REA_GHIDRA_DIR` + `REA_JAVA_HOME` saat render (mis. `~/tools/ghidra_*/`, `~/.jdks/temurin-21`) |
 | **web-search** | MCP server `node .../web-search-mcp/dist/index.js` | checkout lokal; set `WEB_SEARCH_MCP_DIR`, lalu `npm install && npm run build` di dalamnya |
 | **headroom** | MCP server (nonaktif secara default) | `~/.local/bin/headroom`; `{{HEADROOM_BIN}}` |
